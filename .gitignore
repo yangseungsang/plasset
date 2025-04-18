@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+venv_backup*/
+ENV/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# 환경 설정
+.env
+.env.local
+.env.*.local
+
+# 데이터베이스 (필요에 따라 주석 처리)
+*.db
+*.db-journal
+# asset_management.db
+
+# 로그
+*.log
+logs/
+
+# 백업 파일
+*.bak
+*.backup
+*~ 
+
+
+app/static/images/

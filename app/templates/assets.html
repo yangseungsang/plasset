@@ -1,0 +1,1862 @@
+{% extends "base.html" %} {% block title %}{{ title }}{% endblock %} {% block
+head_extra %}
+<link
+  rel="stylesheet"
+  href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"
+/>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+{% endblock %} {% block content %}
+<div class="row mb-4">
+  <div class="col-md-6">
+    <h1><i class="fas fa-boxes"></i> 자산 목록</h1>
+  </div>
+  <div class="col-md-6 text-end">
+    <a href="/assets/create" class="btn btn-primary">
+      <i class="fas fa-plus-circle"></i> 자산 추가
+    </a>
+    <button id="exportBtn" class="btn btn-success">
+      <i class="fas fa-file-excel"></i> 엑셀 내보내기
+    </button>
+  </div>
+</div>
+
+<!-- 열 제어 패널 버튼 -->
+<button id="toggleColumnPanelBtn" class="btn btn-info" title="열 설정">
+  <i class="fas fa-columns"></i>
+</button>
+
+<!-- 열 제어 패널 -->
+<div id="columnControlPanel">
+  <h5>테이블 열 관리</h5>
+  <div id="columnToggleOptions">
+    <!-- 여기에 동적으로 열 토글 옵션 추가 -->
+  </div>
+  <hr />
+  <div class="column-order-controls">
+    <h6>열 순서 변경</h6>
+    <p class="small text-muted">드래그하여 순서를 변경하세요</p>
+    <ul id="columnOrderList" class="list-group column-order-list">
+      <!-- 여기에 동적으로 열 순서 옵션 추가 -->
+    </ul>
+    <div class="mt-3">
+      <button id="resetColumnOrderBtn" class="btn btn-sm btn-outline-secondary">
+        기본 순서로 초기화
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 검색 및 필터 -->
+<div class="card mb-4">
+  <div class="card-header">
+    <a
+      class="text-decoration-none"
+      data-bs-toggle="collapse"
+      href="#filterCollapse"
+      role="button"
+      aria-expanded="true"
+    >
+      <h5 class="mb-0">
+        <i class="fas fa-filter"></i> 검색 및 필터
+        <i class="fas fa-chevron-down float-end"></i>
+      </h5>
+    </a>
+  </div>
+  <div class="collapse show" id="filterCollapse">
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-8">
+          <div class="input-group">
+            <input
+              type="text"
+              id="searchInput"
+              class="form-control"
+              placeholder="자산명, 시리얼 번호, 관리 번호, 소유자로 검색"
+            />
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              id="searchBtn"
+            >
+              <i class="fas fa-search"></i> 검색
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-3 mb-3">
+          <label class="form-label">카테고리</label>
+          <div class="filter-options-container" id="categoryFilterOptions">
+            <!-- 카테고리 옵션이 여기에 동적으로 추가됩니다 -->
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">소유자</label>
+          <div class="filter-options-container" id="ownerFilterOptions">
+            <!-- 소유자 옵션이 여기에 동적으로 추가됩니다 -->
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">보관 장소</label>
+          <div class="filter-options-container" id="locationFilterOptions">
+            <!-- 보관 장소 옵션이 여기에 동적으로 추가됩니다 -->
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label class="form-label">네트워크망</label>
+          <div class="filter-options-container" id="networkFilterOptions">
+            <!-- 네트워크망 옵션이 여기에 동적으로 추가됩니다 -->
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 mb-3">
+          <label class="form-label">사용여부</label>
+          <div class="filter-options-container" id="usageFilterOptions">
+            <div class="form-check">
+              <input
+                class="form-check-input usage-filter-option"
+                type="checkbox"
+                value="true"
+                id="usage-option-1"
+              />
+              <label class="form-check-label" for="usage-option-1"
+                >사용중</label
+              >
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input usage-filter-option"
+                type="checkbox"
+                value="false"
+                id="usage-option-2"
+              />
+              <label class="form-check-label" for="usage-option-2"
+                >미사용</label
+              >
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input usage-filter-option"
+                type="checkbox"
+                value="null"
+                id="usage-option-3"
+              />
+              <label class="form-check-label" for="usage-option-3">모름</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 적용된 필터 표시 영역 -->
+      <div id="activeFilters" class="row mb-3 d-none">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header py-2">
+              <h6 class="m-0">적용된 필터</h6>
+            </div>
+            <div class="card-body py-2">
+              <div id="activeFiltersList" class="d-flex flex-wrap gap-2">
+                <!-- 적용된 필터가 여기에 동적으로 추가됩니다 -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12 text-end">
+          <button id="resetFilterBtn" class="btn btn-outline-secondary">
+            <i class="fas fa-eraser"></i> 필터 초기화
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 자산 목록 테이블 -->
+<div class="card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped table-hover" id="assetsTable">
+        <thead class="table-primary">
+          <tr>
+            <th data-sort="name" class="sortable" data-column="name">
+              자산명 <i class="fas fa-sort"></i>
+            </th>
+            <th data-sort="category" class="sortable" data-column="category">
+              카테고리 <i class="fas fa-sort"></i>
+            </th>
+            <th
+              data-sort="serial_number"
+              class="sortable"
+              data-column="serial_number"
+            >
+              시리얼 넘버 <i class="fas fa-sort"></i>
+            </th>
+            <th
+              data-sort="management_number"
+              class="sortable"
+              data-column="management_number"
+            >
+              관리 넘버 <i class="fas fa-sort"></i>
+            </th>
+            <th
+              data-sort="ip_address"
+              class="sortable"
+              data-column="ip_address"
+            >
+              IP 주소 <i class="fas fa-sort"></i>
+            </th>
+            <th data-sort="owner" class="sortable" data-column="owner">
+              소유자 <i class="fas fa-sort"></i>
+            </th>
+            <th data-sort="location" class="sortable" data-column="location">
+              보관 장소 <i class="fas fa-sort"></i>
+            </th>
+            <th
+              data-sort="network_type"
+              class="sortable"
+              data-column="network_type"
+            >
+              네트워크망 <i class="fas fa-sort"></i>
+            </th>
+            <th data-sort="is_in_use" class="sortable" data-column="is_in_use">
+              사용여부 <i class="fas fa-sort"></i>
+            </th>
+            <th data-column="actions">작업</th>
+          </tr>
+        </thead>
+        <tbody id="assetsList">
+          <!-- 자산 목록이 여기에 동적으로 로드됩니다 -->
+        </tbody>
+      </table>
+    </div>
+    <div id="noResults" class="text-center p-3 d-none">
+      <p>검색 결과가 없습니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 필터 섹션 -->
+<div
+  class="offcanvas offcanvas-start"
+  tabindex="-1"
+  id="offcanvasFilter"
+  aria-labelledby="offcanvasFilterLabel"
+>
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasFilterLabel">필터 옵션</h5>
+    <button
+      type="button"
+      class="btn-close text-reset"
+      data-bs-dismiss="offcanvas"
+      aria-label="Close"
+    ></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="d-flex flex-column h-100">
+      <div class="filter-section accordion" id="filterAccordion">
+        <!-- 카테고리 필터 -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="categoryFilterHeading">
+            <button
+              class="accordion-button"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#categoryFilterCollapse"
+              aria-expanded="true"
+              aria-controls="categoryFilterCollapse"
+            >
+              카테고리
+            </button>
+          </h2>
+          <div
+            id="categoryFilterCollapse"
+            class="accordion-collapse collapse show"
+            aria-labelledby="categoryFilterHeading"
+            data-bs-parent="#filterAccordion"
+          >
+            <div
+              class="accordion-body filter-options"
+              id="categoryFilterOptions"
+            >
+              <!-- 카테고리 옵션들이 동적으로 추가됨 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 위치 필터 -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="locationFilterHeading">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#locationFilterCollapse"
+              aria-expanded="false"
+              aria-controls="locationFilterCollapse"
+            >
+              보관 장소
+            </button>
+          </h2>
+          <div
+            id="locationFilterCollapse"
+            class="accordion-collapse collapse"
+            aria-labelledby="locationFilterHeading"
+            data-bs-parent="#filterAccordion"
+          >
+            <div
+              class="accordion-body filter-options"
+              id="locationFilterOptions"
+            >
+              <!-- 위치 옵션들이 동적으로 추가됨 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 네트워크망 필터 -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="networkFilterHeading">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#networkFilterCollapse"
+              aria-expanded="false"
+              aria-controls="networkFilterCollapse"
+            >
+              네트워크망
+            </button>
+          </h2>
+          <div
+            id="networkFilterCollapse"
+            class="accordion-collapse collapse"
+            aria-labelledby="networkFilterHeading"
+            data-bs-parent="#filterAccordion"
+          >
+            <div
+              class="accordion-body filter-options"
+              id="accordionNetworkFilterOptions"
+            >
+              <!-- 네트워크망 옵션들이 동적으로 추가됨 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 소유자 필터 -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="ownerFilterHeading">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#ownerFilterCollapse"
+              aria-expanded="false"
+              aria-controls="ownerFilterCollapse"
+            >
+              소유자
+            </button>
+          </h2>
+          <div
+            id="ownerFilterCollapse"
+            class="accordion-collapse collapse"
+            aria-labelledby="ownerFilterHeading"
+            data-bs-parent="#filterAccordion"
+          >
+            <div class="accordion-body filter-options" id="ownerFilterOptions">
+              <!-- 소유자 옵션들이 동적으로 추가됨 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 사용여부 필터 -->
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="usageFilterHeading">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#usageFilterCollapse"
+              aria-expanded="false"
+              aria-controls="usageFilterCollapse"
+            >
+              사용여부
+            </button>
+          </h2>
+          <div
+            id="usageFilterCollapse"
+            class="accordion-collapse collapse"
+            aria-labelledby="usageFilterHeading"
+            data-bs-parent="#filterAccordion"
+          >
+            <div class="accordion-body">
+              <div class="form-check">
+                <input
+                  class="form-check-input usage-filter-option"
+                  type="checkbox"
+                  value="true"
+                  id="usage-option-1"
+                />
+                <label class="form-check-label" for="usage-option-1"
+                  >사용중</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input usage-filter-option"
+                  type="checkbox"
+                  value="false"
+                  id="usage-option-2"
+                />
+                <label class="form-check-label" for="usage-option-2"
+                  >미사용</label
+                >
+              </div>
+              <div class="form-check">
+                <input
+                  class="form-check-input usage-filter-option"
+                  type="checkbox"
+                  value="null"
+                  id="usage-option-3"
+                />
+                <label class="form-check-label" for="usage-option-3"
+                  >모름</label
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-auto">
+        <button id="resetFilter" class="btn btn-outline-secondary w-100">
+          초기화
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
+<style>
+  .sortable {
+    cursor: pointer;
+  }
+
+  .sort-asc .fa-sort::before {
+    content: "\f0de"; /* fa-sort-up */
+  }
+
+  .sort-desc .fa-sort::before {
+    content: "\f0dd"; /* fa-sort-down */
+  }
+
+  .location-link-btn {
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.3rem;
+  }
+
+  .filter-options-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  .form-check {
+    margin-bottom: 0.3rem;
+    text-align: left;
+  }
+
+  .form-check:last-child {
+    margin-bottom: 0;
+  }
+
+  .form-check-label {
+    cursor: pointer;
+  }
+
+  .form-check-input {
+    float: left;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+
+  /* 테이블 셀 중앙 정렬 */
+  #assetsTable th,
+  #assetsTable td {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  /* 액션 버튼 간격 */
+  .action-btn {
+    margin: 0 2px;
+  }
+
+  select[multiple] {
+    overflow-y: auto;
+  }
+
+  .usage-badge.true {
+    background-color: #28a745;
+  }
+
+  .usage-badge.false {
+    background-color: #dc3545;
+  }
+
+  .usage-badge.null {
+    background-color: #6c757d;
+  }
+
+  .network-badge.internal {
+    background-color: #007bff;
+  }
+
+  .network-badge.equipment {
+    background-color: #28a745;
+  }
+
+  .network-badge.mixed {
+    background-color: #ffc107;
+    color: #212529;
+  }
+
+  .network-badge.none {
+    background-color: #6c757d;
+  }
+
+  .network-badge.unknown {
+    background-color: #343a40;
+  }
+
+  .filter-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.7rem;
+    border-radius: 50rem;
+    background-color: #f0f0f0;
+    margin-right: 0.3rem;
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  .filter-badge .filter-remove {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    color: #dc3545;
+    font-size: 0.8rem;
+  }
+
+  .filter-badge .filter-remove:hover {
+    color: #b02a37;
+  }
+
+  .filter-badge.category {
+    background-color: #cfe2ff;
+    color: #084298;
+  }
+
+  .filter-badge.location {
+    background-color: #d1e7dd;
+    color: #0a3622;
+  }
+
+  .filter-badge.network {
+    background-color: #fff3cd;
+    color: #664d03;
+  }
+
+  .filter-badge.usage {
+    background-color: #f8d7da;
+    color: #58151c;
+  }
+
+  .filter-badge.owner {
+    background-color: #e2d9f3;
+    color: #42338b;
+  }
+
+  .filter-section.accordion {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .filter-section.accordion .accordion-item {
+    min-width: 200px;
+    margin-right: 10px;
+  }
+
+  .filter-section.accordion .accordion-button {
+    padding: 0.5rem 1rem;
+  }
+
+  .filter-section.accordion .accordion-body {
+    padding: 0.5rem;
+  }
+
+  /* 모바일에서는 스크롤 가능하도록 */
+  @media (max-width: 768px) {
+    .filter-section.accordion {
+      overflow-x: auto;
+    }
+  }
+
+  #activeFiltersList {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+
+  /* 테이블 셀 내용 자르기 설정 */
+  #assetsTable td {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 열 크기 조절 가능하게 설정 */
+  #assetsTable th {
+    position: relative;
+    resize: horizontal;
+    overflow: auto;
+    min-width: 100px;
+  }
+
+  /* 열 컨트롤 드롭다운 메뉴 */
+  .column-controls {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+  }
+
+  /* 숨겨진 열 */
+  .hidden-column {
+    display: none;
+  }
+
+  /* 열 설정 컨트롤 */
+  #columnControlPanel {
+    position: fixed;
+    top: 20%;
+    right: -350px;
+    width: 350px;
+    background-color: white;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    padding: 15px;
+    transition: right 0.3s ease;
+    border-radius: 5px 0 0 5px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  #columnControlPanel.open {
+    right: 0;
+  }
+
+  .column-toggle {
+    margin-bottom: 10px;
+  }
+
+  #toggleColumnPanelBtn {
+    position: fixed;
+    top: 20%;
+    right: 0;
+    z-index: 1001;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 열 순서 변경 리스트 스타일 */
+  .column-order-list {
+    padding-left: 0;
+  }
+
+  .column-order-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: move;
+  }
+
+  .column-order-item:hover {
+    background-color: #e9ecef;
+  }
+
+  .column-order-item i {
+    margin-right: 10px;
+    color: #6c757d;
+  }
+
+  /* 드래그 중인 아이템 스타일 */
+  .column-order-item.ui-sortable-helper {
+    background-color: #e9ecef;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1050;
+  }
+
+  /* 드래그 대상 위치 표시 스타일 */
+  .column-order-item.ui-sortable-placeholder {
+    visibility: visible !important;
+    background-color: #f0f0f0;
+    border: 1px dashed #adb5bd;
+  }
+
+  /* 테이블 헤더 드래그 핸들 */
+  .column-drag-handle {
+    cursor: move;
+    margin-left: 5px;
+    color: #adb5bd;
+  }
+
+  .column-drag-handle:hover {
+    color: #6c757d;
+  }
+</style>
+{% endblock %} {% block extra_js %}
+<script>
+  let assets = [];
+  let categories = [];
+  let locations = [];
+  let currentSort = { field: "name", direction: "asc" };
+
+  // 필터 상태를 저장할 객체
+  let activeFilters = {
+    category: [],
+    location: [],
+    network: [],
+    usage: [],
+    owner: [],
+  };
+
+  // 열 순서 저장용 변수 추가
+  let columnOrder = [];
+
+  // 페이지 로드 시 자산 목록 가져오기
+  $(document).ready(function () {
+    loadAssets();
+    loadCategories();
+    loadLocations();
+    loadOwners();
+    loadNetworkTypes();
+
+    // 검색 버튼 클릭 이벤트
+    $("#searchBtn").click(function () {
+      loadAssets();
+      renderActiveFilters();
+    });
+
+    // 엔터키로 검색 실행
+    $("#searchInput").keypress(function (e) {
+      if (e.which === 13) {
+        loadAssets();
+        renderActiveFilters();
+      }
+    });
+
+    // 필터 적용 버튼 클릭 이벤트
+    $("#resetFilterBtn").click(function () {
+      $("#searchInput").val("");
+
+      // 모든 필터 체크박스 해제
+      $(".form-check-input").prop("checked", false);
+
+      // 필터 상태 초기화
+      activeFilters = {
+        category: [],
+        location: [],
+        network: [],
+        usage: [],
+        owner: [],
+      };
+
+      loadAssets();
+      renderActiveFilters();
+    });
+
+    // 필터 체크박스 변경 이벤트
+    $(document).on("change", ".form-check-input", function () {
+      renderActiveFilters();
+    });
+
+    // 엑셀 내보내기 버튼 클릭 이벤트
+    $("#exportBtn").click(function () {
+      exportToExcel();
+    });
+
+    // 정렬 기능 연결
+    $(".sortable").click(function () {
+      const field = $(this).data("sort");
+
+      // 같은 필드인 경우, 정렬 방향 변경
+      if (field === currentSort.field) {
+        currentSort.direction =
+          currentSort.direction === "asc" ? "desc" : "asc";
+      } else {
+        currentSort.field = field;
+        currentSort.direction = "asc";
+      }
+
+      // 헤더 스타일 업데이트
+      $(".sortable").removeClass("sort-asc sort-desc");
+      $(this).addClass(`sort-${currentSort.direction}`);
+
+      // 정렬 및 자산 목록 다시 렌더링
+      sortAssets();
+      renderAssetsList();
+    });
+
+    // 초기 필터 상태 렌더링
+    renderActiveFilters();
+
+    // 필터 초기화 버튼 클릭 이벤트
+    $("#resetFilters").click(function () {
+      $(".filter-option").prop("checked", false);
+      loadAssets();
+    });
+
+    // 카테고리 필터 체크박스 이벤트
+    $(document).on("change", ".category-filter-option", function () {
+      updateActiveFiltersFromCheckboxes();
+      renderActiveFilters();
+      loadAssets();
+    });
+
+    // 위치 필터 체크박스 이벤트
+    $(document).on("change", ".location-filter-option", function () {
+      updateActiveFiltersFromCheckboxes();
+      renderActiveFilters();
+      loadAssets();
+    });
+
+    // 네트워크망 필터 체크박스 이벤트
+    $(document).on("change", ".network-filter-option", function () {
+      updateActiveFiltersFromCheckboxes();
+      renderActiveFilters();
+      loadAssets();
+    });
+
+    // 사용여부 필터 체크박스 이벤트
+    $(document).on("change", ".usage-filter-option", function () {
+      updateActiveFiltersFromCheckboxes();
+      renderActiveFilters();
+      loadAssets();
+    });
+
+    // 소유자 필터 체크박스 이벤트
+    $(document).on("change", ".owner-filter-option", function () {
+      updateActiveFiltersFromCheckboxes();
+      renderActiveFilters();
+      loadAssets();
+    });
+
+    // 필터 제거 버튼 클릭 이벤트
+    $(document).on("click", ".filter-remove", function () {
+      const filterType = $(this).data("filter-type");
+      const filterValue = $(this).data("filter-value");
+      removeFilter(filterType, filterValue);
+    });
+
+    // 열 설정 패널 토글
+    $("#toggleColumnPanelBtn").click(function () {
+      $("#columnControlPanel").toggleClass("open");
+    });
+
+    // 열 숨기기/표시 설정 초기화
+    initColumnControls();
+
+    // 열 순서 초기화 및 적용
+    initColumnOrder();
+
+    // 열 순서 초기화 버튼
+    $("#resetColumnOrderBtn").click(function () {
+      resetColumnOrder();
+    });
+  });
+
+  // 체크박스에서 필터 값 업데이트
+  function updateActiveFiltersFromCheckboxes() {
+    activeFilters.category = $(".category-filter-option:checked")
+      .map(function () {
+        return $(this).val();
+      })
+      .get();
+
+    activeFilters.location = $(".location-filter-option:checked")
+      .map(function () {
+        return $(this).val();
+      })
+      .get();
+
+    activeFilters.network = $(".network-filter-option:checked")
+      .map(function () {
+        return $(this).val();
+      })
+      .get();
+
+    activeFilters.usage = $(".usage-filter-option:checked")
+      .map(function () {
+        return $(this).val();
+      })
+      .get();
+
+    activeFilters.owner = $(".owner-filter-option:checked")
+      .map(function () {
+        return $(this).val();
+      })
+      .get();
+  }
+
+  // 자산 목록 로드 함수
+  function loadAssets() {
+    const searchQuery = $("#searchInput").val();
+
+    // 필터 값 업데이트
+    updateActiveFiltersFromCheckboxes();
+
+    let url = "/api/assets/?";
+    if (searchQuery) url += `search=${encodeURIComponent(searchQuery)}&`;
+
+    // 기본 API 호출
+    $.ajax({
+      url: "/api/assets/",
+      type: "GET",
+      success: function (data) {
+        // 검색어 필터링 (소유자 포함)
+        if (searchQuery) {
+          const searchLower = searchQuery.toLowerCase();
+          data = data.filter((asset) => {
+            return (
+              asset.name?.toLowerCase().includes(searchLower) ||
+              asset.serial_number?.toLowerCase().includes(searchLower) ||
+              asset.management_number?.toLowerCase().includes(searchLower) ||
+              asset.owner?.toLowerCase().includes(searchLower)
+            );
+          });
+        }
+
+        // 클라이언트 측 필터링 적용
+        assets = data.filter((asset) => {
+          // 카테고리 필터
+          if (
+            activeFilters.category.length > 0 &&
+            !activeFilters.category.includes(asset.category)
+          ) {
+            return false;
+          }
+
+          // 위치 필터
+          if (
+            activeFilters.location.length > 0 &&
+            !activeFilters.location.includes(asset.location)
+          ) {
+            return false;
+          }
+
+          // 네트워크망 필터
+          if (
+            activeFilters.network.length > 0 &&
+            !activeFilters.network.includes(asset.network_type)
+          ) {
+            return false;
+          }
+
+          // 사용여부 필터
+          if (activeFilters.usage.length > 0) {
+            const assetUsage =
+              asset.is_in_use === null ? "null" : asset.is_in_use.toString();
+            if (!activeFilters.usage.includes(assetUsage)) {
+              return false;
+            }
+          }
+
+          // 소유자 필터
+          if (
+            activeFilters.owner.length > 0 &&
+            !activeFilters.owner.includes(asset.owner)
+          ) {
+            return false;
+          }
+
+          return true;
+        });
+
+        // 정렬 적용
+        sortAssets();
+        // 목록 렌더링
+        renderAssetsList();
+      },
+      error: function (error) {
+        console.error("Error loading assets:", error);
+        alert("자산 목록을 불러오는데 실패했습니다.");
+      },
+    });
+  }
+
+  // 자산 정렬 함수
+  function sortAssets() {
+    assets.sort((a, b) => {
+      let aValue = a[currentSort.field];
+      let bValue = b[currentSort.field];
+
+      // null 값 처리
+      if (aValue === null || aValue === undefined) aValue = "";
+      if (bValue === null || bValue === undefined) bValue = "";
+
+      // 문자열로 비교
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        const comparison = aValue.localeCompare(bValue);
+        return currentSort.direction === "asc" ? comparison : -comparison;
+      }
+
+      // 숫자로 비교
+      const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      return currentSort.direction === "asc" ? comparison : -comparison;
+    });
+  }
+
+  // 카테고리 목록 로드 함수
+  function loadCategories() {
+    $.ajax({
+      url: "/api/categories/",
+      type: "GET",
+      success: function (data) {
+        categories = data;
+        renderCategoryOptions();
+      },
+      error: function (error) {
+        console.error("Error loading categories:", error);
+      },
+    });
+  }
+
+  // 위치 목록 로드 함수
+  function loadLocations() {
+    $.ajax({
+      url: "/api/locations/",
+      type: "GET",
+      success: function (data) {
+        locations = data;
+        renderLocationOptions();
+      },
+      error: function (error) {
+        console.error("Error loading locations:", error);
+      },
+    });
+  }
+
+  // 소유자 목록 로드 함수
+  function loadOwners() {
+    $.ajax({
+      url: "/api/owners/",
+      type: "GET",
+      success: function (data) {
+        // Owner 객체 배열에서 이름 목록 추출
+        const uniqueOwners = data.map((owner) => owner.name);
+
+        // 소유자 필터 옵션 생성
+        let ownerOptions = "";
+        uniqueOwners.sort().forEach(function (owner) {
+          ownerOptions += `
+            <div class="form-check">
+              <input class="form-check-input owner-filter-option" type="checkbox" value="${owner}" id="owner-option-${owner.replace(
+            /\s+/g,
+            "-"
+          )}">
+              <label class="form-check-label" for="owner-option-${owner.replace(
+                /\s+/g,
+                "-"
+              )}">${owner}</label>
+            </div>
+          `;
+        });
+
+        // 소유자 필터 옵션 렌더링
+        $("#ownerFilterOptions").html(
+          ownerOptions || '<p class="text-muted">등록된 소유자가 없습니다.</p>'
+        );
+      },
+      error: function (error) {
+        console.error("Error loading owners:", error);
+        $("#ownerFilterOptions").html(
+          '<p class="text-danger">소유자 목록을 불러오는데 실패했습니다.</p>'
+        );
+      },
+    });
+  }
+
+  // 네트워크망 유형 로드 함수
+  function loadNetworkTypes() {
+    $.ajax({
+      url: "/api/network_types/",
+      type: "GET",
+      success: function (data) {
+        // 네트워크망 유형 테이블의 모든 항목 출력
+        console.log("네트워크망 유형 목록:", data);
+
+        // 네트워크망 필터 옵션 생성 (아코디언 메뉴용)
+        let networkOptions = "";
+        data
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .forEach(function (networkType, index) {
+            networkOptions += `
+            <div class="form-check">
+              <input class="form-check-input network-filter-option" type="checkbox" value="${networkType.name}" id="network-option-accordion-${index}">
+              <label class="form-check-label" for="network-option-accordion-${index}">${networkType.name}</label>
+            </div>
+          `;
+          });
+
+        // 네트워크망 필터 옵션 생성 (메인 필터 영역용)
+        let mainNetworkOptions = "";
+        data
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .forEach(function (networkType, index) {
+            mainNetworkOptions += `
+            <div class="form-check">
+              <input class="form-check-input network-filter-option" type="checkbox" value="${networkType.name}" id="network-option-${index}">
+              <label class="form-check-label" for="network-option-${index}">${networkType.name}</label>
+            </div>
+          `;
+          });
+
+        // 아코디언 메뉴의 네트워크망 필터 옵션 렌더링
+        $("#accordionNetworkFilterOptions").html(
+          networkOptions ||
+            '<p class="text-muted">등록된 네트워크망 유형이 없습니다.</p>'
+        );
+
+        // 메인 필터 영역의 네트워크망 필터 옵션 렌더링
+        $("#networkFilterOptions").html(
+          mainNetworkOptions ||
+            '<p class="text-muted">등록된 네트워크망 유형이 없습니다.</p>'
+        );
+
+        console.log("네트워크망 필터 옵션 렌더링 완료");
+      },
+      error: function (error) {
+        console.error("Error loading network types:", error);
+
+        // API 호출 실패 시 assets API를 대체로 사용
+        console.log(
+          "network_types API 호출 실패, assets API 사용을 시도합니다."
+        );
+        fallbackLoadNetworkTypes();
+      },
+    });
+  }
+
+  // 네트워크망 유형 로드 실패 시 assets API로 대체하는 함수
+  function fallbackLoadNetworkTypes() {
+    $.ajax({
+      url: "/api/assets/",
+      type: "GET",
+      success: function (data) {
+        // 모든 자산 데이터 콘솔에 출력하여 네트워크망 값 확인
+        console.log("대체 방법: 자산 데이터에서 네트워크망 값 추출");
+
+        // 고유한 네트워크망 유형 추출 (null/빈 값 포함하여 "없음"으로 처리)
+        let networkTypesArray = data.map((asset) => {
+          return asset.network_type || "없음";
+        });
+
+        // 중복 제거
+        const networkTypes = [...new Set(networkTypesArray)];
+
+        console.log("추출된 네트워크망 유형:", networkTypes);
+
+        // 네트워크망 필터 옵션 생성 (아코디언 메뉴용)
+        let networkOptions = "";
+        networkTypes.sort().forEach(function (networkType, index) {
+          networkOptions += `
+            <div class="form-check">
+              <input class="form-check-input network-filter-option" type="checkbox" value="${networkType}" id="network-option-accordion-${index}">
+              <label class="form-check-label" for="network-option-accordion-${index}">${networkType}</label>
+            </div>
+          `;
+        });
+
+        // 네트워크망 필터 옵션 생성 (메인 필터 영역용)
+        let mainNetworkOptions = "";
+        networkTypes.sort().forEach(function (networkType, index) {
+          mainNetworkOptions += `
+            <div class="form-check">
+              <input class="form-check-input network-filter-option" type="checkbox" value="${networkType}" id="network-option-${index}">
+              <label class="form-check-label" for="network-option-${index}">${networkType}</label>
+            </div>
+          `;
+        });
+
+        // 아코디언 메뉴의 네트워크망 필터 옵션 렌더링
+        $("#accordionNetworkFilterOptions").html(
+          networkOptions ||
+            '<p class="text-muted">등록된 네트워크망 유형이 없습니다.</p>'
+        );
+
+        // 메인 필터 영역의 네트워크망 필터 옵션 렌더링
+        $("#networkFilterOptions").html(
+          mainNetworkOptions ||
+            '<p class="text-muted">등록된 네트워크망 유형이 없습니다.</p>'
+        );
+      },
+      error: function (error) {
+        console.error("Error loading assets for network types:", error);
+        $("#networkFilterOptions, #accordionNetworkFilterOptions").html(
+          '<p class="text-danger">네트워크망 유형을 불러오는데 실패했습니다.</p>'
+        );
+      },
+    });
+  }
+
+  // 자산 목록 렌더링 함수
+  function renderAssetsList() {
+    const assetsList = $("#assetsList");
+    assetsList.empty();
+
+    if (assets.length === 0) {
+      $("#noResults").removeClass("d-none");
+      return;
+    }
+
+    $("#noResults").addClass("d-none");
+
+    assets.forEach((asset) => {
+      // null 값 처리
+      const ipAddress = asset.ip_address || "-";
+      const owner = asset.owner || "-";
+      const networkType = asset.network_type || "-";
+      const locationId = getLocationIdByName(asset.location);
+
+      // 네트워크망 배지 클래스 결정
+      let networkBadgeClass = "unknown";
+      if (networkType === "사내망") {
+        networkBadgeClass = "internal";
+      } else if (networkType === "장비망") {
+        networkBadgeClass = "equipment";
+      } else if (networkType === "혼합") {
+        networkBadgeClass = "mixed";
+      } else if (networkType === "없음") {
+        networkBadgeClass = "none";
+      }
+
+      // 사용여부 배지 클래스 결정
+      let usageBadgeClass = "null";
+      let usageText = "모름";
+      if (asset.is_in_use === true) {
+        usageBadgeClass = "true";
+        usageText = "사용중";
+      } else if (asset.is_in_use === false) {
+        usageBadgeClass = "false";
+        usageText = "미사용";
+      }
+
+      assetsList.append(`
+        <tr>
+          <td data-column="name" title="${asset.name}">${asset.name}</td>
+          <td data-column="category" title="${asset.category}">${asset.category}</td>
+          <td data-column="serial_number" title="${asset.serial_number}">${asset.serial_number}</td>
+          <td data-column="management_number" title="${asset.management_number}">${asset.management_number}</td>
+          <td data-column="ip_address" title="${ipAddress}">${ipAddress}</td>
+          <td data-column="owner" title="${owner}">${owner}</td>
+          <td data-column="location" title="${asset.location}">
+            ${asset.location}
+            <a href="/locations/${locationId}" class="btn btn-sm btn-outline-info location-link-btn" title="위치 상세보기">
+              <i class="fas fa-map-marker-alt"></i>
+            </a>
+          </td>
+          <td data-column="network_type" title="${networkType}">
+            <span class="badge network-badge ${networkBadgeClass}">${networkType}</span>
+          </td>
+          <td data-column="is_in_use" title="${usageText}">
+            <span class="badge usage-badge ${usageBadgeClass}">${usageText}</span>
+          </td>
+          <td data-column="actions">
+            <a href="/assets/${asset.id}" class="btn btn-sm btn-info action-btn" title="상세보기">
+              <i class="fas fa-eye"></i>
+            </a>
+            <a href="/assets/${asset.id}/edit" class="btn btn-sm btn-warning action-btn" title="수정">
+              <i class="fas fa-edit"></i>
+            </a>
+            <button class="btn btn-sm btn-danger delete-asset action-btn" data-id="${asset.id}" title="삭제">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `);
+    });
+
+    // 삭제 버튼 이벤트 연결
+    $(".delete-asset").click(function () {
+      const assetId = $(this).data("id");
+      if (confirm("정말로 이 자산을 삭제하시겠습니까?")) {
+        deleteAsset(assetId);
+      }
+    });
+
+    // 로드 후 열 숨김 설정 적용
+    const hiddenColumns =
+      JSON.parse(localStorage.getItem("hiddenColumns")) || [];
+    applyColumnVisibility(hiddenColumns);
+
+    // 열 순서 적용
+    applyColumnOrder();
+  }
+
+  // 카테고리 옵션 렌더링 함수
+  function renderCategoryOptions() {
+    const categoryOptionsContainer = $("#categoryFilterOptions");
+    categoryOptionsContainer.empty();
+
+    categories.forEach((category, index) => {
+      categoryOptionsContainer.append(`
+        <div class="form-check">
+          <input class="form-check-input category-filter-option" type="checkbox" value="${category.name}" id="category-option-${index}">
+          <label class="form-check-label" for="category-option-${index}">${category.name}</label>
+        </div>
+      `);
+    });
+  }
+
+  // 위치 옵션 렌더링 함수
+  function renderLocationOptions() {
+    const locationOptionsContainer = $("#locationFilterOptions");
+    locationOptionsContainer.empty();
+
+    locations.forEach((location, index) => {
+      locationOptionsContainer.append(`
+        <div class="form-check">
+          <input class="form-check-input location-filter-option" type="checkbox" value="${location.name}" id="location-option-${index}">
+          <label class="form-check-label" for="location-option-${index}">${location.name}</label>
+        </div>
+      `);
+    });
+  }
+
+  // 자산 삭제 함수
+  function deleteAsset(assetId) {
+    $.ajax({
+      url: `/api/assets/${assetId}`,
+      type: "DELETE",
+      success: function () {
+        loadAssets();
+      },
+      error: function (error) {
+        console.error("Error deleting asset:", error);
+        alert("자산 삭제에 실패했습니다.");
+      },
+    });
+  }
+
+  // 적용된 필터 표시 함수
+  function renderActiveFilters() {
+    let filterBadges = "";
+    let hasActiveFilters = false;
+
+    // 체크박스에서 선택된 필터 값 가져오기
+    updateActiveFiltersFromCheckboxes();
+
+    // 카테고리 필터 배지
+    activeFilters.category.forEach(function (categoryId) {
+      const category = categories.find((c) => c.id === parseInt(categoryId));
+      const categoryName = category ? category.name : categoryId;
+      filterBadges += createFilterBadge(
+        "category",
+        "카테고리",
+        categoryName,
+        categoryId
+      );
+      hasActiveFilters = true;
+    });
+
+    // 위치 필터 배지
+    activeFilters.location.forEach(function (locationId) {
+      const location = locations.find((l) => l.id === parseInt(locationId));
+      const locationName = location ? location.name : locationId;
+      filterBadges += createFilterBadge(
+        "location",
+        "보관 장소",
+        locationName,
+        locationId
+      );
+      hasActiveFilters = true;
+    });
+
+    // 네트워크망 필터 배지
+    activeFilters.network.forEach(function (networkType) {
+      let networkName = networkType;
+      switch (networkType) {
+        case "사내망":
+          networkName = "사내망";
+          break;
+        case "장비망":
+          networkName = "장비망";
+          break;
+        case "혼합":
+          networkName = "혼합";
+          break;
+        case "없음":
+          networkName = "없음";
+          break;
+        default:
+          networkName = "알 수 없음";
+          break;
+      }
+      filterBadges += createFilterBadge(
+        "network",
+        "네트워크망",
+        networkName,
+        networkType
+      );
+      hasActiveFilters = true;
+    });
+
+    // 사용여부 필터 배지
+    activeFilters.usage.forEach(function (usageStatus) {
+      let usageName = usageStatus;
+      switch (usageStatus) {
+        case "true":
+          usageName = "사용중";
+          break;
+        case "false":
+          usageName = "미사용";
+          break;
+        case "null":
+          usageName = "모름";
+          break;
+      }
+      filterBadges += createFilterBadge(
+        "usage",
+        "사용여부",
+        usageName,
+        usageStatus
+      );
+      hasActiveFilters = true;
+    });
+
+    // 소유자 필터 배지
+    activeFilters.owner.forEach(function (owner) {
+      filterBadges += createFilterBadge("owner", "소유자", owner, owner);
+      hasActiveFilters = true;
+    });
+
+    // 필터 배지 표시 여부 설정
+    if (hasActiveFilters) {
+      $("#activeFiltersList").html(filterBadges);
+      $("#activeFilters").removeClass("d-none");
+    } else {
+      $("#activeFilters").addClass("d-none");
+    }
+  }
+
+  // 엑셀 내보내기 함수
+  function exportToExcel() {
+    const searchQuery = $("#searchInput").val();
+
+    // 체크박스에서 필터 값 업데이트
+    updateActiveFiltersFromCheckboxes();
+
+    const categoryFilter = activeFilters.category.join(",");
+    const locationFilter = activeFilters.location.join(",");
+    const networkFilter = activeFilters.network.join(",");
+    const usageFilter = activeFilters.usage.join(",");
+
+    let url = "/api/export/assets/?";
+    if (searchQuery) url += `search=${encodeURIComponent(searchQuery)}&`;
+    if (categoryFilter)
+      url += `category=${encodeURIComponent(categoryFilter)}&`;
+    if (locationFilter)
+      url += `location=${encodeURIComponent(locationFilter)}&`;
+    if (networkFilter)
+      url += `network_type=${encodeURIComponent(networkFilter)}&`;
+    if (usageFilter) url += `is_in_use=${encodeURIComponent(usageFilter)}&`;
+
+    window.location.href = url;
+  }
+
+  // 위치 이름으로 위치 ID를 찾는 함수 추가
+  function getLocationIdByName(locationName) {
+    const location = locations.find((loc) => loc.name === locationName);
+    return location ? location.id : "#";
+  }
+
+  // 필터 배지 생성 함수
+  function createFilterBadge(type, label, name, value) {
+    return `
+      <div class="filter-badge ${type}">
+        <span>${label}: ${name}</span>
+        <span class="filter-remove" data-filter-type="${type}" data-filter-value="${value}">
+          <i class="fas fa-times"></i>
+        </span>
+      </div>
+    `;
+  }
+
+  // 필터 제거 함수
+  function removeFilter(filterType, filterValue) {
+    // 해당 필터 체크박스 해제
+    if (filterType === "category") {
+      $(`.category-filter-option[value="${filterValue}"]`).prop(
+        "checked",
+        false
+      );
+    } else if (filterType === "location") {
+      $(`.location-filter-option[value="${filterValue}"]`).prop(
+        "checked",
+        false
+      );
+    } else if (filterType === "network") {
+      $(`.network-filter-option[value="${filterValue}"]`).prop(
+        "checked",
+        false
+      );
+    } else if (filterType === "usage") {
+      $(`.usage-filter-option[value="${filterValue}"]`).prop("checked", false);
+    } else if (filterType === "owner") {
+      $(`.owner-filter-option[value="${filterValue}"]`).prop("checked", false);
+    }
+
+    // 필터 값 업데이트 및 목록 다시 로드
+    updateActiveFiltersFromCheckboxes();
+    renderActiveFilters();
+    loadAssets();
+  }
+
+  // 열 숨기기/표시 컨트롤 초기화 함수
+  function initColumnControls() {
+    const columns = [
+      { id: "name", name: "자산명" },
+      { id: "category", name: "카테고리" },
+      { id: "serial_number", name: "시리얼 넘버" },
+      { id: "management_number", name: "관리 넘버" },
+      { id: "ip_address", name: "IP 주소" },
+      { id: "owner", name: "소유자" },
+      { id: "location", name: "보관 장소" },
+      { id: "network_type", name: "네트워크망" },
+      { id: "is_in_use", name: "사용여부" },
+      { id: "actions", name: "작업" },
+    ];
+
+    // 저장된 열 설정 가져오기
+    let hiddenColumns = JSON.parse(localStorage.getItem("hiddenColumns")) || [];
+
+    // 열 토글 옵션 생성
+    let toggleOptions = "";
+    columns.forEach((column) => {
+      const isChecked = !hiddenColumns.includes(column.id);
+      toggleOptions += `
+        <div class="column-toggle form-check">
+          <input class="form-check-input" type="checkbox" id="toggle-${
+            column.id
+          }" 
+                 data-column="${column.id}" ${isChecked ? "checked" : ""}>
+          <label class="form-check-label" for="toggle-${column.id}">${
+        column.name
+      }</label>
+        </div>
+      `;
+    });
+
+    $("#columnToggleOptions").html(toggleOptions);
+
+    // 저장된 설정 적용
+    applyColumnVisibility(hiddenColumns);
+
+    // 열 토글 이벤트 처리
+    $(".column-toggle input").change(function () {
+      const columnId = $(this).data("column");
+      const isVisible = $(this).prop("checked");
+
+      // 열 표시/숨김 처리
+      if (isVisible) {
+        $(
+          `th[data-column="${columnId}"], td[data-column="${columnId}"]`
+        ).removeClass("hidden-column");
+        // 숨김 목록에서 제거
+        hiddenColumns = hiddenColumns.filter((id) => id !== columnId);
+      } else {
+        $(
+          `th[data-column="${columnId}"], td[data-column="${columnId}"]`
+        ).addClass("hidden-column");
+        // 숨김 목록에 추가
+        if (!hiddenColumns.includes(columnId)) {
+          hiddenColumns.push(columnId);
+        }
+      }
+
+      // 설정 저장
+      localStorage.setItem("hiddenColumns", JSON.stringify(hiddenColumns));
+    });
+  }
+
+  // 열 표시/숨김 적용 함수
+  function applyColumnVisibility(hiddenColumns) {
+    // 모든 열 표시
+    $("th[data-column], td[data-column]").removeClass("hidden-column");
+
+    // 숨김 설정된 열만 숨기기
+    hiddenColumns.forEach((columnId) => {
+      $(
+        `th[data-column="${columnId}"], td[data-column="${columnId}"]`
+      ).addClass("hidden-column");
+    });
+  }
+
+  // 열 숨기기/표시 컨트롤 초기화 함수
+  function initColumnControls() {
+    const columns = [
+      { id: "name", name: "자산명" },
+      { id: "category", name: "카테고리" },
+      { id: "serial_number", name: "시리얼 넘버" },
+      { id: "management_number", name: "관리 넘버" },
+      { id: "ip_address", name: "IP 주소" },
+      { id: "owner", name: "소유자" },
+      { id: "location", name: "보관 장소" },
+      { id: "network_type", name: "네트워크망" },
+      { id: "is_in_use", name: "사용여부" },
+      { id: "actions", name: "작업" },
+    ];
+
+    // 저장된 열 설정 가져오기
+    let hiddenColumns = JSON.parse(localStorage.getItem("hiddenColumns")) || [];
+
+    // 열 토글 옵션 생성
+    let toggleOptions = "";
+    columns.forEach((column) => {
+      const isChecked = !hiddenColumns.includes(column.id);
+      toggleOptions += `
+        <div class="column-toggle form-check">
+          <input class="form-check-input" type="checkbox" id="toggle-${
+            column.id
+          }" 
+                 data-column="${column.id}" ${isChecked ? "checked" : ""}>
+          <label class="form-check-label" for="toggle-${column.id}">${
+        column.name
+      }</label>
+        </div>
+      `;
+    });
+
+    $("#columnToggleOptions").html(toggleOptions);
+
+    // 저장된 설정 적용
+    applyColumnVisibility(hiddenColumns);
+
+    // 열 토글 이벤트 처리
+    $(".column-toggle input").change(function () {
+      const columnId = $(this).data("column");
+      const isVisible = $(this).prop("checked");
+
+      // 열 표시/숨김 처리
+      if (isVisible) {
+        $(
+          `th[data-column="${columnId}"], td[data-column="${columnId}"]`
+        ).removeClass("hidden-column");
+        // 숨김 목록에서 제거
+        hiddenColumns = hiddenColumns.filter((id) => id !== columnId);
+      } else {
+        $(
+          `th[data-column="${columnId}"], td[data-column="${columnId}"]`
+        ).addClass("hidden-column");
+        // 숨김 목록에 추가
+        if (!hiddenColumns.includes(columnId)) {
+          hiddenColumns.push(columnId);
+        }
+      }
+
+      // 설정 저장
+      localStorage.setItem("hiddenColumns", JSON.stringify(hiddenColumns));
+    });
+  }
+
+  // 열 순서 초기화 및 적용 함수
+  function initColumnOrder() {
+    const defaultColumnOrder = [
+      "name",
+      "category",
+      "serial_number",
+      "management_number",
+      "ip_address",
+      "owner",
+      "location",
+      "network_type",
+      "is_in_use",
+      "actions",
+    ];
+
+    // 저장된 열 순서 가져오기 (없으면 기본 순서 사용)
+    columnOrder =
+      JSON.parse(localStorage.getItem("columnOrder")) || defaultColumnOrder;
+
+    // 열 순서 목록 생성
+    renderColumnOrderList();
+
+    // 테이블에 열 순서 적용
+    applyColumnOrder();
+
+    // 열 순서 변경 이벤트 설정 (jQuery UI Sortable)
+    $("#columnOrderList").sortable({
+      placeholder: "column-order-item ui-sortable-placeholder",
+      update: function (event, ui) {
+        // 변경된 순서 저장
+        saveColumnOrder();
+        // 테이블에 변경된 순서 적용
+        applyColumnOrder();
+      },
+    });
+  }
+
+  // 열 순서 목록 렌더링 함수
+  function renderColumnOrderList() {
+    const columnNames = {
+      name: "자산명",
+      category: "카테고리",
+      serial_number: "시리얼 넘버",
+      management_number: "관리 넘버",
+      ip_address: "IP 주소",
+      owner: "소유자",
+      location: "보관 장소",
+      network_type: "네트워크망",
+      is_in_use: "사용여부",
+      actions: "작업",
+    };
+
+    let listItems = "";
+
+    // 현재 순서대로 항목 생성
+    columnOrder.forEach((columnId) => {
+      listItems += `
+        <li class="column-order-item" data-column-id="${columnId}">
+          <i class="fas fa-grip-vertical"></i>
+          ${columnNames[columnId]}
+        </li>
+      `;
+    });
+
+    $("#columnOrderList").html(listItems);
+  }
+
+  // 변경된 열 순서 저장 함수
+  function saveColumnOrder() {
+    // 현재 목록에서 열 ID 순서 추출
+    columnOrder = $("#columnOrderList li")
+      .map(function () {
+        return $(this).data("column-id");
+      })
+      .get();
+
+    // 로컬 스토리지에 저장
+    localStorage.setItem("columnOrder", JSON.stringify(columnOrder));
+  }
+
+  // 테이블에 열 순서 적용 함수
+  function applyColumnOrder() {
+    const table = $("#assetsTable");
+    const headers = table.find("thead tr");
+    const rows = table.find("tbody tr");
+
+    // 각 열의 인덱스 맵 생성
+    const columnIndexMap = {};
+
+    // 헤더를 새 순서로 재배치
+    columnOrder.forEach((columnId, newIndex) => {
+      const header = headers.find(`th[data-column="${columnId}"]`);
+
+      if (header.length) {
+        // 현재 인덱스 저장
+        const oldIndex = header.index();
+        columnIndexMap[oldIndex] = newIndex;
+
+        // 헤더가 이미 올바른 위치에 있는지 확인
+        if (oldIndex !== newIndex) {
+          // 타겟 위치 결정
+          const targetHeader = headers.find(`th:eq(${newIndex})`);
+
+          if (oldIndex < newIndex) {
+            targetHeader.after(header);
+          } else {
+            targetHeader.before(header);
+          }
+        }
+      }
+    });
+
+    // 모든 행의 셀 재배치
+    rows.each(function () {
+      const row = $(this);
+      const cells = row.find("td");
+
+      // 열 순서대로 셀 재배치
+      columnOrder.forEach((columnId, newIndex) => {
+        const cell = row.find(`td[data-column="${columnId}"]`);
+
+        if (cell.length) {
+          // 현재 인덱스 확인
+          const oldIndex = cell.index();
+
+          // 셀이 이미 올바른 위치에 있는지 확인
+          if (oldIndex !== newIndex) {
+            // 타겟 위치 결정
+            const targetCell = row.find(`td:eq(${newIndex})`);
+
+            if (oldIndex < newIndex) {
+              targetCell.after(cell);
+            } else {
+              targetCell.before(cell);
+            }
+          }
+        }
+      });
+    });
+  }
+
+  // 열 순서 초기화 함수
+  function resetColumnOrder() {
+    const defaultColumnOrder = [
+      "name",
+      "category",
+      "serial_number",
+      "management_number",
+      "ip_address",
+      "owner",
+      "location",
+      "network_type",
+      "is_in_use",
+      "actions",
+    ];
+
+    // 기본 순서로 초기화
+    columnOrder = [...defaultColumnOrder];
+
+    // 로컬 스토리지에서 삭제
+    localStorage.removeItem("columnOrder");
+
+    // 목록 갱신
+    renderColumnOrderList();
+
+    // 테이블에 적용
+    applyColumnOrder();
+  }
+</script>
+{% endblock %}

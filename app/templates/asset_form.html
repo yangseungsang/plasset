@@ -1,0 +1,2416 @@
+{% extends "base.html" %} {% block title %}{{ title }}{% endblock %} {% block
+content %}
+<div class="row mb-4">
+  <div class="col-md-12">
+    <h1>
+      {% if is_update %}
+      <i class="fas fa-edit"></i> 자산 수정 {% else %}
+      <i class="fas fa-plus-circle"></i> 자산 추가 {% endif %}
+    </h1>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form id="assetForm">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="name" class="form-label">자산명 *</label>
+          <input
+            type="text"
+            class="form-control"
+            id="name"
+            name="name"
+            required
+          />
+        </div>
+        <div class="col-md-6">
+          <label for="category" class="form-label">카테고리 *</label>
+          <div class="input-group">
+            <select class="form-select" id="category" name="category" required>
+              <option value="">카테고리를 선택하세요</option>
+            </select>
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              id="manageCategoriesBtn"
+              data-bs-toggle="modal"
+              data-bs-target="#categoryModal"
+            >
+              <i class="fas fa-tags"></i> 관리
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="serial_number" class="form-label">시리얼 넘버 *</label>
+          <input
+            type="text"
+            class="form-control"
+            id="serial_number"
+            name="serial_number"
+            required
+          />
+        </div>
+        <div class="col-md-6">
+          <label for="management_number" class="form-label">관리 넘버 *</label>
+          <input
+            type="text"
+            class="form-control"
+            id="management_number"
+            name="management_number"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="owner" class="form-label">소유자 *</label>
+          <div class="input-group">
+            <select class="form-select" id="owner" name="owner" required>
+              <option value="">소유자를 선택하세요</option>
+            </select>
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              id="manageOwnersBtn"
+              data-bs-toggle="modal"
+              data-bs-target="#ownerModal"
+            >
+              <i class="fas fa-users-cog"></i> 관리
+            </button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label for="location" class="form-label">보관 장소 *</label>
+          <div class="input-group">
+            <select class="form-select" id="location" name="location" required>
+              <option value="">보관 장소를 선택하세요</option>
+            </select>
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              id="selectLocationBtn"
+              data-bs-toggle="modal"
+              data-bs-target="#locationModal"
+            >
+              <i class="fas fa-map-marker-alt"></i> 위치 지정
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="network_type" class="form-label">네트워크망 *</label>
+          <div class="input-group">
+            <select
+              class="form-select"
+              id="network_type"
+              name="network_type"
+              required
+            >
+              <option value="">네트워크망을 선택하세요</option>
+            </select>
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              id="manageNetworksBtn"
+              data-bs-toggle="modal"
+              data-bs-target="#networkModal"
+            >
+              <i class="fas fa-network-wired"></i> 관리
+            </button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">사용여부 *</label>
+          <div class="d-flex align-items-center gap-4">
+            <div class="form-check d-flex align-items-center gap-2">
+              <input
+                class="form-check-input mt-0"
+                type="radio"
+                name="is_in_use"
+                id="usage_true"
+                value="true"
+                checked
+                required
+              />
+              <label class="form-check-label" for="usage_true">사용중</label>
+            </div>
+            <div class="form-check d-flex align-items-center gap-2">
+              <input
+                class="form-check-input mt-0"
+                type="radio"
+                name="is_in_use"
+                id="usage_false"
+                value="false"
+                required
+              />
+              <label class="form-check-label" for="usage_false">미사용</label>
+            </div>
+            <div class="form-check d-flex align-items-center gap-2">
+              <input
+                class="form-check-input mt-0"
+                type="radio"
+                name="is_in_use"
+                id="usage_null"
+                value="null"
+                required
+              />
+              <label class="form-check-label" for="usage_null">모름</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="acquisition_date" class="form-label">자산 도입일</label>
+          <input
+            type="date"
+            class="form-control"
+            id="acquisition_date"
+            name="acquisition_date"
+          />
+        </div>
+        <div class="col-md-6">
+          <label for="mac_address" class="form-label">MAC 주소</label>
+          <input
+            type="text"
+            class="form-control"
+            id="mac_address"
+            name="mac_address"
+            placeholder="예: 00:1A:2B:3C:4D:5E"
+          />
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="ip_address" class="form-label">IP 주소</label>
+          <input
+            type="text"
+            class="form-control"
+            id="ip_address"
+            name="ip_address"
+            placeholder="예: 192.168.1.100"
+          />
+        </div>
+        <div class="col-md-6">
+          <input type="hidden" id="xCoordinate" name="xCoordinate" />
+          <input type="hidden" id="yCoordinate" name="yCoordinate" />
+          <div id="coordinateDisplay" class="form-text d-none">
+            <i class="fas fa-map-pin"></i> 위치 좌표: X:
+            <span id="xDisplay"></span>, Y: <span id="yDisplay"></span>
+            <button
+              type="button"
+              class="btn btn-sm btn-link text-danger"
+              id="resetCoordinatesBtn"
+            >
+              초기화
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="description" class="form-label">설명</label>
+        <textarea
+          class="form-control"
+          id="description"
+          name="description"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <a href="/assets" class="btn btn-secondary">취소</a>
+        <button type="submit" class="btn btn-primary">
+          {% if is_update %} 수정하기 {% else %} 추가하기 {% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if is_update %}
+<!-- 변경 이력 섹션 (수정 모드에서만 표시) -->
+<div class="card mt-4">
+  <div class="card-header">
+    <h5><i class="fas fa-exchange-alt"></i> 변경 이력</h5>
+  </div>
+  <div class="card-body">
+    <div id="historyList" class="accordion">
+      <!-- 변경 이력이 여기에 동적으로 로드됩니다 -->
+    </div>
+    <div id="noHistory" class="text-center p-3 d-none">
+      <p>변경 이력이 없습니다.</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- 위치 선택 모달 -->
+<div
+  class="modal fade"
+  id="locationModal"
+  tabindex="-1"
+  aria-labelledby="locationModalLabel"
+  aria-hidden="false"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="locationModalLabel">자산 위치 선택</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <h6 id="locationNameDisplay" class="fw-bold"></h6>
+        </div>
+        <div class="position-relative image-container">
+          <!-- 이미지를 표시할 컨테이너 -->
+          <div
+            class="position-relative overflow-hidden"
+            style="max-width: 100%"
+          >
+            <img
+              id="locationImage"
+              src=""
+              class="img-fluid mb-2 d-none"
+              alt="위치 이미지"
+              style="max-height: 500px; width: auto"
+            />
+            <!-- 마커는 이미지 컨테이너 내부에 배치 -->
+            <div
+              id="positionMarker"
+              class="position-absolute rounded-circle bg-danger"
+              style="
+                width: 20px;
+                height: 20px;
+                transform: translate(-50%, -50%);
+                display: none;
+                z-index: 10;
+                box-shadow: 0 0 0 rgba(204, 0, 0, 0.6);
+                animation: pulse 1.5s infinite;
+              "
+            ></div>
+          </div>
+          <div id="noImageMessage" class="alert alert-info">
+            선택한 위치에 대한 이미지가 없습니다. 위치를 선택하고 이미지를
+            업로드해주세요.
+          </div>
+        </div>
+
+        <!-- 이미지 업로드 폼 -->
+        <div id="imageUploadForm" class="mt-3 p-3 border rounded d-none">
+          <h6><i class="fas fa-upload"></i> 위치 이미지 업로드</h6>
+          <div class="mb-3">
+            <label for="locationImageFile" class="form-label"
+              >이미지 파일 선택 (JPG, PNG)</label
+            >
+            <input
+              class="form-control"
+              type="file"
+              id="locationImageFile"
+              accept="image/jpeg,image/png"
+            />
+            <div class="form-text">이미지 크기는 가로 800px 이상 권장</div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-success btn-sm"
+            id="uploadImageBtn"
+          >
+            <i class="fas fa-upload"></i> 업로드
+          </button>
+        </div>
+
+        <p class="text-muted mt-2">
+          이미지를 클릭하여 자산의 위치를 지정하세요.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          취소
+        </button>
+        <button type="button" class="btn btn-primary" id="savePositionBtn">
+          위치 저장
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 카테고리 관리 모달 -->
+<div
+  class="modal fade"
+  id="categoryModal"
+  tabindex="-1"
+  aria-labelledby="categoryModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="categoryModalLabel">카테고리 관리</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <!-- 카테고리 폼 -->
+          <div class="col-md-5">
+            <form id="categoryForm" class="mb-4">
+              <input type="hidden" id="categoryId" name="categoryId" value="" />
+              <div class="mb-3">
+                <label for="categoryName" class="form-label"
+                  >카테고리 이름</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="categoryName"
+                  name="categoryName"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="categoryDescription" class="form-label"
+                  >설명 (선택사항)</label
+                >
+                <textarea
+                  class="form-control"
+                  id="categoryDescription"
+                  name="categoryDescription"
+                  rows="2"
+                ></textarea>
+              </div>
+              <div class="d-flex">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  id="saveCategoryBtn"
+                >
+                  <i class="fas fa-plus"></i> 추가하기
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary ms-2 d-none"
+                  id="cancelEditCategoryBtn"
+                >
+                  <i class="fas fa-times"></i> 취소
+                </button>
+              </div>
+            </form>
+          </div>
+          <!-- 카테고리 목록 -->
+          <div class="col-md-7">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>이름</th>
+                    <th>설명</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody id="categoriesTableBody">
+                  <!-- 카테고리 목록이 여기에 로드됩니다 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 소유자 관리 모달 -->
+<div class="modal fade" id="ownerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-users"></i> 소유자 관리</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="ownerForm" class="mb-3">
+          <input type="hidden" id="ownerId" value="" />
+          <div class="mb-3">
+            <label for="ownerName" class="form-label">소유자명 *</label>
+            <input type="text" class="form-control" id="ownerName" required />
+          </div>
+          <div class="mb-3">
+            <label for="ownerDepartment" class="form-label">부서</label>
+            <input type="text" class="form-control" id="ownerDepartment" />
+          </div>
+          <div class="mb-3">
+            <label for="ownerContact" class="form-label">연락처</label>
+            <input type="text" class="form-control" id="ownerContact" />
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" id="saveOwnerBtn">
+              <i class="fas fa-plus"></i> 추가하기
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary d-none"
+              id="cancelEditOwnerBtn"
+            >
+              <i class="fas fa-times"></i> 취소
+            </button>
+          </div>
+        </form>
+        <div class="table-responsive mt-3">
+          <table class="table table-sm table-hover">
+            <thead>
+              <tr>
+                <th>소유자명</th>
+                <th>부서</th>
+                <th>연락처</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="ownersTableBody">
+              <!-- 소유자 목록이 여기에 동적으로 로드됩니다 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 네트워크망 관리 모달 -->
+<div class="modal fade" id="networkModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-network-wired"></i> 네트워크망 관리
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="networkForm" class="mb-3">
+          <input type="hidden" id="networkId" value="" />
+          <div class="mb-3">
+            <label for="networkName" class="form-label"
+              >네트워크망 이름 *</label
+            >
+            <input type="text" class="form-control" id="networkName" required />
+          </div>
+          <div class="mb-3">
+            <label for="networkDescription" class="form-label">설명</label>
+            <textarea
+              class="form-control"
+              id="networkDescription"
+              rows="2"
+            ></textarea>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" id="saveNetworkBtn">
+              <i class="fas fa-plus"></i> 추가하기
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary d-none"
+              id="cancelEditNetworkBtn"
+            >
+              <i class="fas fa-times"></i> 취소
+            </button>
+          </div>
+        </form>
+        <div class="table-responsive mt-3">
+          <table class="table table-sm table-hover">
+            <thead>
+              <tr>
+                <th>네트워크망</th>
+                <th>설명</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="networksTableBody">
+              <!-- 네트워크망 목록이 여기에 동적으로 로드됩니다 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(204, 0, 0, 0.6);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(204, 0, 0, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(204, 0, 0, 0);
+    }
+  }
+
+  #positionMarker {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: red;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  #locationImage {
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 500px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .image-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+</style>
+{% endblock %} {% block extra_js %}
+<script>
+  console.log("Script 실행 시작");
+
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM 로드 완료");
+
+    // jQuery 로드 확인
+    if (typeof $ !== "undefined") {
+      console.log("jQuery가 로드되었습니다.");
+
+      // API가 제공하는 카테고리와 서버에서 실제 사용 가능한 카테고리가 다를 수 있음
+      // 테스트를 통해 작동하는 카테고리 문자열을 직접 확인
+      const WORKING_CATEGORY = "기타"; // 테스트 확인됨
+      const WORKING_OWNER = "김철수";   // 테스트 소유자
+      const WORKING_LOCATION = "본사";  // 테스트 위치
+      const WORKING_NETWORK = "사내망"; // 테스트 네트워크
+
+      // 수정 모드 여부 확인
+      const isUpdate = {{ 'true' if is_update else 'false' }};
+      const assetId = {{ asset_id if is_update else 0 }};
+      console.log("수정 모드:", isUpdate, "자산 ID:", assetId);
+
+      // 데이터 로드 흐름 제어
+      if (isUpdate) {
+        // 수정 모드: 우선 실제 데이터를 로드한 후 자산 데이터 적용
+        loadRealData();
+        setTimeout(function() {
+          loadAssetData(assetId);
+        }, 500);
+      } else {
+        // 추가 모드: 실제 데이터만 로드
+        loadRealData();
+      }
+    } else {
+      console.error("jQuery가 로드되지 않았습니다!");
+
+      // jQuery 없이 직접 DOM 조작
+      console.log("순수 JavaScript로 드롭다운 채우기 시도");
+
+      loadRealDataWithFetch();
+    }
+  });
+
+  // 실제 API 데이터 로드 함수 (jQuery 사용)
+  function loadRealData(callback) {
+    console.log("API에서 실제 데이터 로드 시작 (jQuery)");
+
+    let loadedCount = 0;
+    const totalRequests = 4; // 카테고리, 소유자, 네트워크망, 위치
+
+    // 모든 요청이 완료되었는지 확인하는 함수
+    function checkAllLoaded() {
+      loadedCount++;
+      console.log(`데이터 로드 진행 상황: ${loadedCount}/${totalRequests}`);
+      if (loadedCount === totalRequests && callback) {
+        console.log("모든 데이터 로드 완료, 콜백 실행");
+        callback();
+      }
+    }
+
+    // 카테고리 데이터 로드
+    $.ajax({
+      url: "/api/categories/",
+      type: "GET",
+      dataType: "json",
+      cache: false,
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+      success: function (data) {
+        console.log("API 카테고리 데이터 로드 성공:", data);
+        if (Array.isArray(data) && data.length > 0) {
+          var categorySelect = document.getElementById("category");
+          categorySelect.innerHTML = '<option value="">카테고리를 선택하세요</option>';
+
+          console.log("카테고리 드롭다운 업데이트 시작");
+
+          // 모든 카테고리 표시
+          data.forEach(function (category) {
+            console.log(
+              `카테고리 처리: ID=${
+                category.id
+              }, 타입=${typeof category.id}, 이름=${category.name}`
+            );
+            var option = document.createElement("option");
+            // ID 대신 이름을 값으로 저장
+            option.value = category.name;
+            console.log(
+              `옵션 값 설정: ${option.value}, 타입=${typeof option.value}`
+            );
+            option.textContent = category.name;
+            // 데이터 속성으로 ID도 저장해둠
+            option.dataset.id = category.id;
+            categorySelect.appendChild(option);
+          });
+
+          console.log("카테고리 드롭다운 업데이트 완료");
+        }
+        checkAllLoaded();
+      },
+      error: function (xhr, status, error) {
+        console.error("API 카테고리 데이터 로드 실패:", error);
+        console.error("상태 코드:", xhr.status);
+        console.error("응답 텍스트:", xhr.responseText);
+
+        // 오류 시 테스트 데이터로 폴백
+        loadTestData();
+        checkAllLoaded();
+      },
+    });
+
+    // 소유자 데이터 로드
+    $.ajax({
+      url: "/api/owners/",
+      type: "GET",
+      dataType: "json",
+      cache: false,
+      success: function (data) {
+        console.log("API 소유자 데이터 로드 성공:", data);
+        if (Array.isArray(data) && data.length > 0) {
+          var ownerSelect = document.getElementById("owner");
+          ownerSelect.innerHTML = '<option value="">소유자를 선택하세요</option>';
+
+          data.forEach(function (owner) {
+            var option = document.createElement("option");
+            // ID 대신 이름을 값으로 저장
+            option.value = owner.name;
+            option.dataset.id = owner.id;
+            option.textContent =
+              owner.name +
+              (owner.department ? " (" + owner.department + ")" : "");
+            ownerSelect.appendChild(option);
+          });
+          console.log("소유자 드롭다운 업데이트 완료");
+        }
+        checkAllLoaded();
+      },
+      error: function (xhr) {
+        console.error("API 소유자 데이터 로드 실패:", xhr);
+        // 오류 시 테스트 데이터로 폴백
+        loadTestData();
+        checkAllLoaded();
+      },
+    });
+
+    // 네트워크망 데이터 로드
+    $.ajax({
+      url: "/api/network_types/",
+      type: "GET",
+      dataType: "json",
+      cache: false,
+      success: function (data) {
+        console.log("API 네트워크망 데이터 로드 성공:", data);
+        if (Array.isArray(data) && data.length > 0) {
+          var networkSelect = document.getElementById("network_type");
+          networkSelect.innerHTML = '<option value="">네트워크망을 선택하세요</option>';
+
+          data.forEach(function (network) {
+            var option = document.createElement("option");
+            // ID 대신 이름을 값으로 저장
+            option.value = network.name;
+            option.dataset.id = network.id;
+            option.textContent = network.name;
+            networkSelect.appendChild(option);
+          });
+          console.log("네트워크망 드롭다운 업데이트 완료");
+        }
+        checkAllLoaded();
+      },
+      error: function (xhr) {
+        console.error("API 네트워크망 데이터 로드 실패:", xhr);
+        // 오류 시 테스트 데이터로 폴백
+        loadTestData();
+        checkAllLoaded();
+      },
+    });
+
+    // 위치 데이터 로드
+    $.ajax({
+      url: "/api/locations/",
+      type: "GET",
+      dataType: "json",
+      cache: false,
+      success: function (data) {
+        console.log("API 위치 데이터 로드 성공:", data);
+        if (Array.isArray(data) && data.length > 0) {
+          var locationSelect = document.getElementById("location");
+          locationSelect.innerHTML = '<option value="">보관 장소를 선택하세요</option>';
+
+          data.forEach(function (location) {
+            var option = document.createElement("option");
+            // ID 대신 이름을 값으로 저장
+            option.value = location.name;
+            option.dataset.id = location.id;
+            option.textContent = location.name;
+            locationSelect.appendChild(option);
+          });
+          console.log("위치 드롭다운 업데이트 완료");
+        }
+        checkAllLoaded();
+      },
+      error: function (xhr) {
+        console.error("API 위치 데이터 로드 실패:", xhr);
+        // 오류 시 테스트 데이터로 폴백
+        loadTestData();
+        checkAllLoaded();
+      },
+    });
+  }
+
+  // 실제 API 데이터 로드 함수 (순수 JavaScript Fetch API 사용)
+  function loadRealDataWithFetch() {
+    console.log("API에서 실제 데이터 로드 시작 (Fetch API)");
+
+    // 카테고리 데이터 로드
+    fetch("/api/categories/", {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("카테고리 데이터 로드 실패: " + response.status);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("API 카테고리 데이터 로드 성공 (Fetch):", data);
+        if (Array.isArray(data) && data.length > 0) {
+          var categorySelect = document.getElementById("category");
+          categorySelect.innerHTML = '<option value="">카테고리를 선택하세요</option>';
+
+          data.forEach(function (category) {
+            var option = document.createElement("option");
+            option.value = String(category.id);
+            option.textContent = category.name;
+            categorySelect.appendChild(option);
+          });
+          console.log("카테고리 드롭다운 업데이트 완료 (Fetch)");
+        }
+      })
+      .catch((error) => {
+        console.error("API 카테고리 데이터 로드 에러 (Fetch):", error);
+        // 오류 시 테스트 데이터로 폴백
+        loadTestData();
+      });
+
+    // 소유자 데이터 로드
+    fetch("/api/owners/")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("API 소유자 데이터 로드 성공 (Fetch):", data);
+        if (Array.isArray(data) && data.length > 0) {
+          var ownerSelect = document.getElementById("owner");
+          ownerSelect.innerHTML = '<option value="">소유자를 선택하세요</option>';
+
+          data.forEach(function (owner) {
+            var option = document.createElement("option");
+            option.value = owner.id;
+            option.textContent =
+              owner.name +
+              (owner.department ? " (" + owner.department + ")" : "");
+            ownerSelect.appendChild(option);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("API 소유자 데이터 로드 에러 (Fetch):", error);
+        // 오류 시 테스트 데이터로 폴백
+        loadTestData();
+      });
+
+    // 네트워크망 및 위치 데이터도 유사하게 로드...
+  }
+
+  // 테스트 데이터 로드 함수 (API 오류 시 폴백)
+  function loadTestData() {
+    console.log("테스트 데이터로 폴백");
+
+    // 테스트 데이터
+    const testData = [
+      { id: 1, name: "테스트 카테고리 1" },
+      { id: 2, name: "테스트 카테고리 2" },
+      { id: 3, name: "테스트 카테고리 3" },
+    ];
+
+    // 각 드롭다운에 테스트 데이터 설정
+    var selects = ["category", "owner", "network_type", "location"];
+    var labels = ["카테고리", "소유자", "네트워크망", "보관 장소"];
+
+    selects.forEach(function (selectId, index) {
+      var select = document.getElementById(selectId);
+      if (select) {
+        select.innerHTML =
+          '<option value="">' + labels[index] + " 선택</option>";
+        testData.forEach(function (item) {
+          var option = document.createElement("option");
+          option.value = item.id;
+          option.textContent = labels[index] + " " + item.name;
+          select.appendChild(option);
+        });
+      }
+    });
+  }
+
+  // 추가 연결 테스트
+  window.onload = function () {
+    console.log("window onload 이벤트 발생");
+  };
+
+  // 카테고리 추가 함수
+  function addCategory() {
+    console.log("카테고리 추가 시작");
+    const categoryName = $("#categoryName").val();
+    const categoryDescription = $("#categoryDescription").val();
+
+    if (!categoryName) {
+      alert("카테고리 이름을 입력해주세요");
+      return;
+    }
+
+    // 카테고리 추가 API 호출
+    $.ajax({
+      url: "/api/categories/",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        name: categoryName,
+        description: categoryDescription || null,
+      }),
+      success: function (data) {
+        console.log("카테고리 추가 성공:", data);
+        // 폼 초기화
+        $("#categoryForm")[0].reset();
+        // 목록 새로고침
+        refreshCategoriesList();
+        // 드롭다운 목록 업데이트
+        setTimeout(function () {
+          loadRealData();
+        }, 500);
+        alert("카테고리가 추가되었습니다.");
+      },
+      error: function (xhr, status, error) {
+        console.error("카테고리 추가 실패:", error);
+        console.error("응답:", xhr.responseText);
+        alert("카테고리 추가 중 오류가 발생했습니다: " + error);
+      },
+    });
+  }
+
+  // 카테고리 수정 함수
+  function updateCategory() {
+    console.log("카테고리 수정 시작");
+    const categoryId = $("#categoryId").val();
+    const categoryName = $("#categoryName").val();
+    const categoryDescription = $("#categoryDescription").val();
+
+    if (!categoryName) {
+      alert("카테고리 이름을 입력해주세요");
+      return;
+    }
+
+    // 카테고리 수정 API 호출
+    $.ajax({
+      url: "/api/categories/" + categoryId,
+      type: "PUT",
+      contentType: "application/json",
+      data: JSON.stringify({
+        name: categoryName,
+        description: categoryDescription || null,
+      }),
+      success: function (data) {
+        console.log("카테고리 수정 성공:", data);
+        // 폼 초기화 및 상태 변경
+        resetCategoryForm();
+        // 목록 새로고침
+        refreshCategoriesList();
+        // 드롭다운 목록 업데이트
+        setTimeout(function () {
+          loadRealData();
+        }, 500);
+        alert("카테고리가 수정되었습니다.");
+      },
+      error: function (xhr, status, error) {
+        console.error("카테고리 수정 실패:", error);
+        console.error("응답:", xhr.responseText);
+        alert("카테고리 수정 중 오류가 발생했습니다: " + error);
+      },
+    });
+  }
+
+  // 카테고리 폼 초기화 함수
+  function resetCategoryForm() {
+    $("#categoryId").val("");
+    $("#categoryName").val("");
+    $("#categoryDescription").val("");
+    $("#saveCategoryBtn").html("<i class='fas fa-plus'></i> 추가하기");
+    $("#cancelEditCategoryBtn").addClass("d-none");
+  }
+
+  // 카테고리 목록 새로고침 함수
+  function refreshCategoriesList() {
+    console.log("카테고리 목록 새로고침 시작");
+    $("#categoriesTableBody").html(
+      '<tr><td colspan="3" class="text-center"><i class="fas fa-spinner fa-spin"></i> 로딩 중...</td></tr>'
+    );
+
+    $.ajax({
+      url: "/api/categories/",
+      type: "GET",
+      dataType: "json",
+      cache: false,
+      success: function (data) {
+        console.log("카테고리 목록 로드 성공:", data);
+        const categoriesTableBody = $("#categoriesTableBody");
+        categoriesTableBody.empty();
+
+        if (!data || data.length === 0) {
+          categoriesTableBody.html(
+            '<tr><td colspan="3" class="text-center">등록된 카테고리가 없습니다.</td></tr>'
+          );
+          return;
+        }
+
+        $.each(data, function (index, category) {
+          const row = `
+            <tr>
+              <td>${category.name}</td>
+              <td>${category.description || "-"}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary edit-category"
+                  data-id="${category.id}"
+                  data-name="${category.name}"
+                  data-description="${category.description || ""}">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger delete-category"
+                  data-id="${category.id}">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+          categoriesTableBody.append(row);
+        });
+      },
+      error: function (xhr, status, error) {
+        console.error("카테고리 목록 로드 실패:", error);
+        $("#categoriesTableBody").html(
+          '<tr><td colspan="3" class="text-center text-danger">카테고리 목록을 불러오는 중 오류가 발생했습니다.</td></tr>'
+        );
+      },
+    });
+  }
+
+  // 소유자 추가 함수
+  function addOwner() {
+    console.log("소유자 추가 시작");
+    const ownerName = $("#ownerName").val();
+    const department = $("#ownerDepartment").val();
+    const contact = $("#ownerContact").val();
+
+    if (!ownerName) {
+      alert("소유자 이름을 입력해주세요");
+      return;
+    }
+
+    // 소유자 추가 API 호출
+    $.ajax({
+      url: "/api/owners/",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        name: ownerName,
+        department: department || null,
+        contact: contact || null,
+      }),
+      success: function (data) {
+        console.log("소유자 추가 성공:", data);
+        // 폼 초기화
+        $("#ownerForm")[0].reset();
+        // 목록 새로고침
+        refreshOwnersList();
+        // 드롭다운 목록 업데이트
+        setTimeout(function () {
+          loadRealData();
+        }, 500);
+        alert("소유자가 추가되었습니다.");
+      },
+      error: function (xhr, status, error) {
+        console.error("소유자 추가 실패:", error);
+        console.error("응답:", xhr.responseText);
+        alert("소유자 추가 중 오류가 발생했습니다: " + error);
+      },
+    });
+  }
+
+  // 소유자 수정 함수
+  function updateOwner() {
+    console.log("소유자 수정 시작");
+    const ownerId = $("#ownerId").val();
+    const ownerName = $("#ownerName").val();
+    const department = $("#ownerDepartment").val();
+    const contact = $("#ownerContact").val();
+
+    if (!ownerName) {
+      alert("소유자 이름을 입력해주세요");
+      return;
+    }
+
+    // 소유자 수정 API 호출
+    $.ajax({
+      url: "/api/owners/" + ownerId,
+      type: "PUT",
+      contentType: "application/json",
+      data: JSON.stringify({
+        name: ownerName,
+        department: department || null,
+        contact: contact || null,
+      }),
+      success: function (data) {
+        console.log("소유자 수정 성공:", data);
+        // 폼 초기화 및 상태 변경
+        resetOwnerForm();
+        // 목록 새로고침
+        refreshOwnersList();
+        // 드롭다운 목록 업데이트
+        setTimeout(function () {
+          loadRealData();
+        }, 500);
+        alert("소유자가 수정되었습니다.");
+      },
+      error: function (xhr, status, error) {
+        console.error("소유자 수정 실패:", error);
+        console.error("응답:", xhr.responseText);
+        alert("소유자 수정 중 오류가 발생했습니다: " + error);
+      },
+    });
+  }
+
+  // 소유자 폼 초기화 함수
+  function resetOwnerForm() {
+    $("#ownerId").val("");
+    $("#ownerName").val("");
+    $("#ownerDepartment").val("");
+    $("#ownerContact").val("");
+    $("#saveOwnerBtn").html("<i class='fas fa-plus'></i> 추가하기");
+    $("#cancelEditOwnerBtn").addClass("d-none");
+  }
+
+  // 소유자 목록 새로고침 함수
+  function refreshOwnersList() {
+    console.log("소유자 목록 새로고침 시작");
+    $("#ownersTableBody").html(
+      '<tr><td colspan="4" class="text-center"><i class="fas fa-spinner fa-spin"></i> 로딩 중...</td></tr>'
+    );
+
+          $.ajax({
+      url: "/api/owners/",
+      type: "GET",
+      dataType: "json",
+      cache: false,
+      success: function (data) {
+        console.log("소유자 목록 로드 성공:", data);
+        const ownersTableBody = $("#ownersTableBody");
+                  ownersTableBody.empty();
+
+                  if (!data || data.length === 0) {
+          ownersTableBody.html(
+            '<tr><td colspan="4" class="text-center">등록된 소유자가 없습니다.</td></tr>'
+          );
+                      return;
+                  }
+
+        $.each(data, function (index, owner) {
+                      const row = `
+                          <tr>
+                              <td>${owner.name}</td>
+              <td>${owner.department || "-"}</td>
+              <td>${owner.contact || "-"}</td>
+                              <td>
+                <button class="btn btn-sm btn-outline-primary edit-owner"
+                                    data-id="${owner.id}"
+                                    data-name="${owner.name}"
+                  data-department="${owner.department || ""}"
+                  data-contact="${owner.contact || ""}">
+                                      <i class="fas fa-edit"></i>
+                                  </button>
+                <button class="btn btn-sm btn-outline-danger delete-owner"
+                  data-id="${owner.id}">
+                  <i class="fas fa-trash"></i>
+                                  </button>
+                              </td>
+                          </tr>
+                      `;
+                      ownersTableBody.append(row);
+                  });
+              },
+      error: function (xhr, status, error) {
+        console.error("소유자 목록 로드 실패:", error);
+        $("#ownersTableBody").html(
+          '<tr><td colspan="4" class="text-center text-danger">소유자 목록을 불러오는 중 오류가 발생했습니다.</td></tr>'
+        );
+      },
+    });
+  }
+
+  // 네트워크망 추가 함수
+  function addNetworkType() {
+    console.log("네트워크망 추가 시작");
+    const networkName = $("#networkName").val();
+    const description = $("#networkDescription").val();
+
+    if (!networkName) {
+      alert("네트워크망 이름을 입력해주세요");
+      return;
+    }
+
+    // 네트워크망 추가 API 호출
+    $.ajax({
+      url: "/api/network_types/",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        name: networkName,
+        description: description || null,
+      }),
+      success: function (data) {
+        console.log("네트워크망 추가 성공:", data);
+        // 폼 초기화
+        $("#networkForm")[0].reset();
+        // 목록 새로고침
+        refreshNetworksList();
+        // 드롭다운 목록 업데이트
+        setTimeout(function () {
+          loadRealData();
+        }, 500);
+        alert("네트워크망이 추가되었습니다.");
+      },
+      error: function (xhr, status, error) {
+        console.error("네트워크망 추가 실패:", error);
+        console.error("응답:", xhr.responseText);
+        alert("네트워크망 추가 중 오류가 발생했습니다: " + error);
+      },
+    });
+  }
+
+  // 네트워크망 수정 함수
+  function updateNetworkType() {
+    console.log("네트워크망 수정 시작");
+    const networkId = $("#networkId").val();
+    const networkName = $("#networkName").val();
+    const networkDescription = $("#networkDescription").val();
+
+    if (!networkName) {
+      alert("네트워크망 이름을 입력해주세요");
+      return;
+    }
+
+    // 네트워크망 수정 API 호출
+    $.ajax({
+      url: "/api/network_types/" + networkId,
+      type: "PUT",
+      contentType: "application/json",
+      data: JSON.stringify({
+        name: networkName,
+        description: networkDescription || null,
+      }),
+      success: function (data) {
+        console.log("네트워크망 업데이트 응답:", data);
+
+        // 연관된 자산이 있어 확인이 필요한 경우
+        if (data.requires_confirmation === true) {
+          // 확인 대화상자 표시
+          confirmDialog(
+            data.message,
+            function() {
+              // 확인(예) 선택 시 - 자산 데이터도 함께 업데이트
+              $.ajax({
+                url: "/api/network_types/" + networkId + "?update_assets=true",
+                type: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify({
+                  name: networkName,
+                  description: networkDescription || null,
+                }),
+                success: function(updateResult) {
+                  console.log("연관 자산 포함 업데이트 성공:", updateResult);
+                  resetNetworkForm();
+                  refreshNetworksList();
+                  setTimeout(function() {
+                    loadRealData();
+                  }, 500);
+                  showNotification(updateResult.message, "success");
+                },
+                error: function(xhr, status, error) {
+                  console.error("연관 자산 포함 업데이트 실패:", error);
+                  showNotification("네트워크망 업데이트 중 오류가 발생했습니다.", "danger");
+                }
+              });
+            },
+            function() {
+              // 취소(아니오) 선택 시 - 아무 작업 안함
+              console.log("네트워크망 업데이트 취소됨");
+            },
+            "예, 업데이트합니다",
+            "아니오, 취소합니다"
+          );
+          return;
+        }
+
+        // 확인이 필요 없는 경우 (연관 자산 없음)
+        console.log("네트워크망 수정 성공:", data);
+        resetNetworkForm();
+        refreshNetworksList();
+        setTimeout(function () {
+          loadRealData();
+        }, 500);
+        showNotification(data.message || "네트워크망이 수정되었습니다.", "success");
+      },
+      error: function (xhr, status, error) {
+        console.error("네트워크망 수정 실패:", error);
+        console.error("응답:", xhr.responseText);
+        let errorMsg = "네트워크망 수정 중 오류가 발생했습니다";
+        try {
+          const response = JSON.parse(xhr.responseText);
+          if (response && response.detail) {
+            errorMsg = response.detail;
+          }
+        } catch (e) {}
+        showNotification(errorMsg, "danger");
+      },
+    });
+  }
+
+  // 네트워크망 폼 초기화 함수
+  function resetNetworkForm() {
+    $("#networkId").val("");
+    $("#networkName").val("");
+    $("#networkDescription").val("");
+    $("#saveNetworkBtn").html("<i class='fas fa-plus'></i> 추가하기");
+    $("#cancelEditNetworkBtn").addClass("d-none");
+  }
+
+  // 네트워크망 목록 새로고침 함수
+      function refreshNetworksList() {
+    console.log("네트워크망 목록 새로고침 시작");
+    $("#networksTableBody").html(
+      '<tr><td colspan="3" class="text-center"><i class="fas fa-spinner fa-spin"></i> 로딩 중...</td></tr>'
+    );
+
+          $.ajax({
+      url: "/api/network_types/",
+      type: "GET",
+      dataType: "json",
+      cache: false,
+      success: function (data) {
+        console.log("네트워크망 목록 로드 성공:", data);
+        const networksTableBody = $("#networksTableBody");
+                  networksTableBody.empty();
+
+                  if (!data || data.length === 0) {
+          networksTableBody.html(
+            '<tr><td colspan="3" class="text-center">등록된 네트워크망이 없습니다.</td></tr>'
+          );
+                      return;
+                  }
+
+        $.each(data, function (index, network) {
+                      const row = `
+                          <tr>
+                              <td>${network.name}</td>
+              <td>${network.description || "-"}</td>
+                              <td>
+                <button class="btn btn-sm btn-outline-primary edit-network"
+                                    data-id="${network.id}"
+                                    data-name="${network.name}"
+                  data-description="${network.description || ""}">
+                                      <i class="fas fa-edit"></i>
+                                  </button>
+                <button class="btn btn-sm btn-outline-danger delete-network"
+                  data-id="${network.id}">
+                  <i class="fas fa-trash"></i>
+                                  </button>
+                              </td>
+                          </tr>
+                      `;
+                      networksTableBody.append(row);
+                  });
+              },
+      error: function (xhr, status, error) {
+        console.error("네트워크망 목록 로드 실패:", error);
+        $("#networksTableBody").html(
+          '<tr><td colspan="3" class="text-center text-danger">네트워크망 목록을 불러오는 중 오류가 발생했습니다.</td></tr>'
+        );
+      },
+    });
+  }
+
+  // 모달 이벤트 핸들러 등록
+  $(document).ready(function () {
+    console.log("문서 로드 완료");
+
+    // 수정 모드 여부 확인
+    const isUpdate = {{ 'true' if is_update else 'false' }};
+    const assetId = {{ asset_id if is_update else 0 }};
+    console.log("수정 모드:", isUpdate, "자산 ID:", assetId);
+
+    // API가 제공하는 카테고리와 서버에서 실제 사용 가능한 카테고리가 다를 수 있음
+    // 테스트를 통해 작동하는 카테고리 문자열을 직접 확인
+    const WORKING_CATEGORY = "기타"; // 테스트 확인됨
+    const WORKING_OWNER = "김철수";   // 테스트 소유자
+    const WORKING_LOCATION = "본사";  // 테스트 위치
+    const WORKING_NETWORK = "사내망"; // 테스트 네트워크
+
+    // 실제 데이터 로드 흐름 제어
+    if (isUpdate) {
+      // 수정 모드: 우선 실제 데이터를 로드한 후 자산 데이터 적용
+      loadRealData();
+      setTimeout(function() {
+        loadAssetData(assetId);
+      }, 500);
+    } else {
+      // 추가 모드: 실제 데이터만 로드
+      loadRealData();
+    }
+
+    // 카테고리 모달이 열릴 때 목록 로드
+    $("#categoryModal").on("shown.bs.modal", function () {
+      console.log("카테고리 모달 열림");
+      resetCategoryForm();
+      refreshCategoriesList();
+    });
+
+    // 소유자 모달이 열릴 때 목록 로드
+    $("#ownerModal").on("shown.bs.modal", function () {
+      console.log("소유자 모달 열림");
+      resetOwnerForm();
+      refreshOwnersList();
+    });
+
+    // 네트워크망 모달이 열릴 때 목록 로드
+    $("#networkModal").on("shown.bs.modal", function () {
+      console.log("네트워크망 모달 열림");
+      resetNetworkForm();
+      refreshNetworksList();
+    });
+
+    // 카테고리 폼 제출 처리
+    $("#categoryForm").on("submit", function (e) {
+      e.preventDefault();
+      console.log("카테고리 폼 제출됨");
+      const categoryId = $("#categoryId").val();
+      if (categoryId) {
+        // 수정 모드
+        updateCategory();
+                  } else {
+        // 추가 모드
+        addCategory();
+      }
+    });
+
+    // 소유자 폼 제출 처리
+    $("#ownerForm").on("submit", function (e) {
+      e.preventDefault();
+      console.log("소유자 폼 제출됨");
+      const ownerId = $("#ownerId").val();
+      if (ownerId) {
+        // 수정 모드
+        updateOwner();
+      } else {
+        // 추가 모드
+        addOwner();
+      }
+    });
+
+    // 네트워크망 폼 제출 처리
+    $("#networkForm").on("submit", function (e) {
+      e.preventDefault();
+      console.log("네트워크망 폼 제출됨");
+      const networkId = $("#networkId").val();
+      if (networkId) {
+        // 수정 모드
+        updateNetworkType();
+      } else {
+        // 추가 모드
+        addNetworkType();
+      }
+    });
+
+    // 카테고리 항목 편집 이벤트
+    $(document).on("click", ".edit-category", function () {
+      const id = $(this).data("id");
+      const name = $(this).data("name");
+      const description = $(this).data("description");
+
+      // 폼에 데이터 설정
+      $("#categoryId").val(id);
+      $("#categoryName").val(name);
+      $("#categoryDescription").val(description);
+
+      // 버튼 상태 변경
+      $("#saveCategoryBtn").html("<i class='fas fa-save'></i> 저장하기");
+      $("#cancelEditCategoryBtn").removeClass("d-none");
+    });
+
+    // 카테고리 편집 취소 버튼 이벤트
+    $("#cancelEditCategoryBtn").on("click", function () {
+      resetCategoryForm();
+    });
+
+    // 소유자 항목 편집 이벤트
+    $(document).on("click", ".edit-owner", function () {
+      const id = $(this).data("id");
+      const name = $(this).data("name");
+      const department = $(this).data("department");
+      const contact = $(this).data("contact");
+
+      // 폼에 데이터 설정
+      $("#ownerId").val(id);
+      $("#ownerName").val(name);
+      $("#ownerDepartment").val(department);
+      $("#ownerContact").val(contact);
+
+      // 버튼 상태 변경
+      $("#saveOwnerBtn").html("<i class='fas fa-save'></i> 저장하기");
+      $("#cancelEditOwnerBtn").removeClass("d-none");
+    });
+
+    // 소유자 편집 취소 버튼 이벤트
+    $("#cancelEditOwnerBtn").on("click", function () {
+      resetOwnerForm();
+    });
+
+    // 네트워크망 항목 편집 이벤트
+    $(document).on("click", ".edit-network", function () {
+      const id = $(this).data("id");
+      const name = $(this).data("name");
+      const description = $(this).data("description");
+
+      // 폼에 데이터 설정
+      $("#networkId").val(id);
+      $("#networkName").val(name);
+      $("#networkDescription").val(description);
+
+      // 버튼 상태 변경
+      $("#saveNetworkBtn").html("<i class='fas fa-save'></i> 저장하기");
+      $("#cancelEditNetworkBtn").removeClass("d-none");
+    });
+
+    // 네트워크망 편집 취소 버튼 이벤트
+    $("#cancelEditNetworkBtn").on("click", function () {
+      resetNetworkForm();
+    });
+
+    // 카테고리 항목 삭제 이벤트
+    $(document).on("click", ".delete-category", function () {
+      const id = $(this).data("id");
+      if (confirm("이 카테고리를 삭제하시겠습니까?")) {
+        $.ajax({
+          url: "/api/categories/" + id,
+          type: "DELETE",
+          success: function () {
+            refreshCategoriesList();
+            setTimeout(function () {
+              loadRealData();
+            }, 500);
+            alert("카테고리가 삭제되었습니다.");
+          },
+          error: function (xhr) {
+            console.error("카테고리 삭제 실패:", xhr);
+            alert("카테고리 삭제 중 오류가 발생했습니다.");
+          },
+        });
+      }
+    });
+
+    // 소유자 항목 삭제 이벤트
+    $(document).on("click", ".delete-owner", function () {
+      const id = $(this).data("id");
+      if (confirm("이 소유자를 삭제하시겠습니까?")) {
+          $.ajax({
+          url: "/api/owners/" + id,
+          type: "DELETE",
+          success: function () {
+            refreshOwnersList();
+            setTimeout(function () {
+              loadRealData();
+            }, 500);
+            alert("소유자가 삭제되었습니다.");
+          },
+          error: function (xhr) {
+            console.error("소유자 삭제 실패:", xhr);
+            alert("소유자 삭제 중 오류가 발생했습니다.");
+          },
+        });
+      }
+    });
+
+    // 네트워크망 항목 삭제 이벤트
+    $(document).on("click", ".delete-network", function () {
+      const id = $(this).data("id");
+      if (confirm("이 네트워크망을 삭제하시겠습니까?")) {
+        $.ajax({
+          url: "/api/network_types/" + id,
+          type: "DELETE",
+          success: function () {
+            refreshNetworksList();
+            setTimeout(function () {
+              loadRealData();
+            }, 500);
+            alert("네트워크망이 삭제되었습니다.");
+          },
+          error: function (xhr) {
+            console.error("네트워크망 삭제 실패:", xhr);
+            alert("네트워크망 삭제 중 오류가 발생했습니다.");
+          },
+        });
+      }
+    });
+
+    // 위치 모달이 열릴 때 선택한 보관 장소의 이미지를 표시
+    $("#locationModal").on("shown.bs.modal", function () {
+      console.log("위치 모달 열림");
+      const locationName = $("#location").val();
+
+      if (locationName) {
+        // 선택한 위치 정보 가져오기
+        loadLocationDetailsByName(locationName);
+      } else {
+        // 위치를 선택하지 않은 경우
+        showNoLocationSelected();
+      }
+    });
+
+    // 이름으로 위치 정보 로드
+    function loadLocationDetailsByName(locationName) {
+      console.log("위치 정보 로드 시작 (이름):", locationName);
+
+      $.ajax({
+        url: "/api/locations/",
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+          console.log("위치 목록 로드 성공:", data);
+          // 이름으로 위치 검색
+          const location = data.find(loc => loc.name === locationName);
+
+          if (location) {
+            console.log("위치 정보 찾음:", location);
+            // 위치 이름 표시
+            $("#locationNameDisplay").text(location.name);
+
+            // 이미지가 있는 경우
+            if (location.image_path) {
+              console.log("위치 이미지 경로:", location.image_path);
+              displayLocationImage(location.image_path);
+
+              // 현재 좌표 표시 (있는 경우)
+              const xCoord = $("#xCoordinate").val();
+              const yCoord = $("#yCoordinate").val();
+              if (xCoord && yCoord) {
+                showPositionMarker(xCoord, yCoord);
+              }
+            } else {
+              // 이미지가 없는 경우
+              showNoImageMessage(location.name);
+            }
+          } else {
+            console.error("위치를 찾을 수 없음:", locationName);
+            $("#locationNameDisplay").text(locationName + "(정보 없음)");
+            showErrorMessage();
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("위치 정보 로드 실패:", error);
+          $("#locationNameDisplay").text("위치 정보를 불러올 수 없습니다");
+          showErrorMessage();
+        },
+      });
+    }
+
+    // 이미지 업로드 처리
+    $("#uploadImageBtn").click(function () {
+      const locationName = $("#location").val();
+      if (!locationName) {
+        alert("위치를 먼저 선택해주세요.");
+        return;
+      }
+
+      // 위치 이름으로 위치 ID 찾기
+      $.ajax({
+        url: "/api/locations/",
+        type: "GET",
+        dataType: "json",
+        success: function(locations) {
+          const location = locations.find(loc => loc.name === locationName);
+
+          if (!location) {
+            alert("위치 정보를 찾을 수 없습니다.");
+            return;
+          }
+
+          const locationId = location.id;
+
+          const fileInput = $("#locationImageFile")[0];
+          if (!fileInput.files || !fileInput.files[0]) {
+            alert("이미지 파일을 선택해주세요.");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("image", fileInput.files[0]);
+
+          $.ajax({
+            url: "/api/locations/" + locationId + "/image",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+              console.log("이미지 업로드 성공:", data);
+              // 업로드 성공 후 이미지 표시
+              if (data.image_path) {
+                displayLocationImage(data.image_path);
+                alert("이미지가 업로드되었습니다.");
+              }
+            },
+            error: function (xhr, status, error) {
+              console.error("이미지 업로드 실패:", error);
+              alert("이미지 업로드 중 오류가 발생했습니다.");
+            },
+          });
+        },
+        error: function(xhr, status, error) {
+          console.error("위치 목록 로드 실패:", error);
+          alert("위치 정보를 불러올 수 없습니다.");
+        }
+      });
+    });
+
+    // 위치 모달이 닫힐 때 버튼 초기화
+    $("#locationModal").on("hidden.bs.modal", function () {
+      // 위치 저장 버튼 초기 상태로 설정
+      $("#savePositionBtn").removeClass("btn-success").addClass("btn-primary");
+      $("#savePositionBtn").html("위치 저장");
+    });
+
+    // 선택한 위치 정보 로드
+    function loadLocationDetails(locationId) {
+      console.log("위치 정보 로드 시작:", locationId);
+
+      $.ajax({
+        url: "/api/locations/" + locationId,
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+          console.log("위치 정보 로드 성공:", data);
+          // 위치 이름 표시
+          $("#locationNameDisplay").text(data.name);
+
+          // 이미지가 있는 경우
+          if (data.image_path) {
+            console.log("위치 이미지 경로:", data.image_path);
+            displayLocationImage(data.image_path);
+
+            // 현재 좌표 표시 (있는 경우)
+            const xCoord = $("#xCoordinate").val();
+            const yCoord = $("#yCoordinate").val();
+            if (xCoord && yCoord) {
+              showPositionMarker(xCoord, yCoord);
+            }
+          } else {
+            // 이미지가 없는 경우
+            showNoImageMessage(data.name);
+          }
+        },
+        error: function (xhr, status, error) {
+          console.error("위치 정보 로드 실패:", error);
+          $("#locationNameDisplay").text("위치 정보를 불러올 수 없습니다");
+          showErrorMessage();
+        },
+      });
+    }
+
+    // 이미지 표시 함수
+    function displayLocationImage(imagePath) {
+      const locationImage = $("#locationImage");
+      locationImage.attr("src", imagePath);
+      locationImage.removeClass("d-none");
+      $("#noImageMessage").addClass("d-none");
+      $("#imageUploadForm").addClass("d-none");
+
+      // 이미지 클릭 이벤트 설정
+      setupImageClickEvent();
+    }
+
+    // 이미지 클릭 이벤트 설정
+    function setupImageClickEvent() {
+      $("#locationImage").off("click").on("click", function (e) {
+        const img = $(this)[0];
+        const rect = img.getBoundingClientRect(); // 이미지의 현재 위치와 크기 정보 가져오기
+
+        // 원본 이미지 비율과 표시 비율 계산
+        const naturalWidth = img.naturalWidth;
+        const naturalHeight = img.naturalHeight;
+        const displayWidth = rect.width;
+        const displayHeight = rect.height;
+
+        // 이미지 비율 계산
+        const displayRatio = displayWidth / displayHeight;
+        const naturalRatio = naturalWidth / naturalHeight;
+
+        // 실제 이미지가 표시되는 영역 계산 (비율 유지로 인한 여백 고려)
+        let actualWidth, actualHeight, offsetLeft, offsetTop;
+
+        if (displayRatio > naturalRatio) {
+          // 이미지 세로 기준으로 맞춰짐 (좌우 여백 발생)
+          actualHeight = displayHeight;
+          actualWidth = naturalRatio * actualHeight;
+          offsetLeft = (displayWidth - actualWidth) / 2;
+          offsetTop = 0;
+        } else {
+          // 이미지 가로 기준으로 맞춰짐 (상하 여백 발생)
+          actualWidth = displayWidth;
+          actualHeight = actualWidth / naturalRatio;
+          offsetLeft = 0;
+          offsetTop = (displayHeight - actualHeight) / 2;
+        }
+
+        // 클릭 위치 계산
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        // 이미지 영역 내의 클릭인지 확인
+        if (clickX >= offsetLeft && clickX <= offsetLeft + actualWidth &&
+            clickY >= offsetTop && clickY <= offsetTop + actualHeight) {
+
+          // 이미지 내에서의 상대 좌표 계산 (퍼센트 단위)
+          const xPercent = ((clickX - offsetLeft) / actualWidth) * 100;
+          const yPercent = ((clickY - offsetTop) / actualHeight) * 100;
+
+          // 0-100% 범위 내로 제한
+          const clampedXPercent = Math.max(0, Math.min(100, xPercent));
+          const clampedYPercent = Math.max(0, Math.min(100, yPercent));
+
+          console.log(`클릭 위치: x=${clampedXPercent.toFixed(2)}%, y=${clampedYPercent.toFixed(2)}%`);
+
+          // 위치 데이터 저장 (퍼센트 단위)
+          $("#xCoordinate").val(clampedXPercent.toFixed(2));
+          $("#yCoordinate").val(clampedYPercent.toFixed(2));
+
+          // 마커 표시
+          showPositionMarker(clampedXPercent, clampedYPercent);
+        }
+      });
+    }
+
+    // 마커 표시 함수 (개선된 효과)
+    function showPositionMarker(xPercent, yPercent) {
+      const marker = $("#positionMarker");
+      const image = $("#locationImage")[0];
+      // 이미지의 직계 부모 컨테이너를 마커의 기준으로 사용
+      const imageContainer = image.parentElement;
+
+      // 마커 위치 지정 - 퍼센트 단위로 설정 (이미지 내부만 고려)
+      marker.css({
+        left: xPercent + "%",
+        top: yPercent + "%",
+        transform: "translate(-50%, -50%)",
+        display: "block"
+      });
+
+      // 위치 표시 효과 추가
+      marker.addClass("pulse-effect")
+        .on("click", function (e) {
+          e.stopPropagation(); // 이미지 클릭 이벤트 전파 방지
+          $(this).toggleClass("active");
+        });
+
+      // 클릭 효과 표시 (선택사항)
+      $('<div class="click-effect"></div>')
+        .css({
+          position: "absolute",
+          left: xPercent + "%",
+          top: yPercent + "%",
+          width: "20px",
+          height: "20px",
+          borderRadius: "50%",
+          backgroundColor: "rgba(255, 255, 255, 0.5)",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+          zIndex: 100
+        })
+        .appendTo(imageContainer)
+        .animate({
+          width: "40px",
+          height: "40px",
+          opacity: 0
+        }, 500, function() {
+          $(this).remove();
+        });
+    }
+
+    // 위치가 선택되지 않은 경우 메시지 표시
+    function showNoLocationSelected() {
+      $("#locationNameDisplay").text("위치를 먼저 선택해주세요");
+      $("#locationImage").addClass("d-none");
+      $("#positionMarker").css("display", "none");
+      $("#noImageMessage")
+        .removeClass("d-none")
+        .text("보관 장소를 먼저 선택한 후 위치 지정 버튼을 눌러주세요.");
+      $("#imageUploadForm").addClass("d-none");
+    }
+
+    // 이미지가 없는 경우 메시지 표시
+    function showNoImageMessage(locationName) {
+      $("#locationImage").addClass("d-none");
+      $("#positionMarker").css("display", "none");
+      $("#noImageMessage")
+        .removeClass("d-none")
+        .text(
+          `선택한 위치 "${locationName}"에 등록된 이미지가 없습니다. 이미지를 업로드해주세요.`
+        );
+      $("#imageUploadForm").removeClass("d-none");
+    }
+
+    // 오류 메시지 표시
+    function showErrorMessage() {
+      $("#locationImage").addClass("d-none");
+      $("#positionMarker").css("display", "none");
+      $("#noImageMessage")
+        .removeClass("d-none")
+        .text("위치 정보를 로드하는 중 오류가 발생했습니다.");
+      $("#imageUploadForm").addClass("d-none");
+    }
+
+    // 위치 저장 버튼 클릭 이벤트
+    $("#savePositionBtn").click(function () {
+      const xCoord = $("#xCoordinate").val();
+      const yCoord = $("#yCoordinate").val();
+
+      if (xCoord && yCoord) {
+        // 선택한 좌표 저장 - 퍼센트 값 그대로 저장
+        $("#xCoordinate").val(xCoord);
+        $("#yCoordinate").val(yCoord);
+
+        // 좌표 정보 표시
+        $("#xDisplay").text(xCoord + "%");
+        $("#yDisplay").text(yCoord + "%");
+        $("#coordinateDisplay").removeClass("d-none");
+
+        // 모달 닫기
+        $("#locationModal").modal("hide");
+
+        console.log("저장된 좌표 (퍼센트):", xCoord + "%", yCoord + "%");
+      } else {
+        alert("이미지를 클릭하여 위치를 선택해주세요.");
+      }
+    });
+
+    // 좌표 초기화 함수
+    function resetCoordinates() {
+      $("#xCoordinate").val("");
+      $("#yCoordinate").val("");
+      $("#coordinateDisplay").addClass("d-none");
+    }
+
+    // 좌표 초기화 버튼 이벤트
+    $("#resetCoordinatesBtn").click(function () {
+      if (confirm("저장된 위치 좌표를 초기화하시겠습니까?")) {
+        resetCoordinates();
+      }
+    });
+
+    // 보관 장소 선택 변경 시 이벤트 처리
+    $("#location").change(function () {
+      const locationId = $(this).val();
+      // 좌표 초기화
+      resetCoordinates();
+
+      console.log("보관 장소 선택 변경:", locationId);
+    });
+
+    // 자산 폼 제출 처리
+    $("#assetForm").on("submit", function (e) {
+      e.preventDefault();
+      console.log("자산 폼 제출 시작");
+
+      // 직접 드롭다운 값 확인
+      console.log("드롭다운 선택 값 확인:");
+      const categoryVal = $("#category").val();
+      console.log("- 카테고리:", categoryVal, "타입:", typeof categoryVal);
+      const ownerVal = $("#owner").val();
+      console.log("- 소유자:", ownerVal, "타입:", typeof ownerVal);
+      const locationVal = $("#location").val();
+      console.log("- 위치:", locationVal, "타입:", typeof locationVal);
+      const networkVal = $("#network_type").val();
+      console.log("- 네트워크:", networkVal, "타입:", typeof networkVal);
+
+      // 필수 입력값 확인
+      if (!categoryVal || !ownerVal || !locationVal || !networkVal) {
+        console.error("필수 드롭다운 값이 선택되지 않았습니다.");
+        alert("모든 필수 항목(카테고리, 소유자, 보관 장소, 네트워크망)을 선택해주세요.");
+        return false;
+      }
+
+      // 폼 데이터 수집
+      const formData = new FormData(this);
+      console.log("폼 필드 값:");
+      for (const [key, value] of formData.entries()) {
+        console.log(`- ${key}: ${value}, 타입: ${typeof value}`);
+      }
+
+      // 데이터 처리 및 제출
+      processFormSubmission(formData);
+      return false;
+    });
+
+    // 폼 제출 처리 함수
+    function processFormSubmission(formData) {
+      const jsonData = {};
+      const isUpdate = {{ 'true' if is_update else 'false' }};
+      const assetId = {{ asset_id if is_update else 0 }};
+
+      console.log(`처리 중: 수정 모드=${isUpdate}, 자산 ID=${assetId}`);
+
+      // FormData를 JSON으로 변환
+      for (const [key, value] of formData.entries()) {
+        // 비어있지 않은 값만 포함
+        if (value !== '') {
+          // 타입 처리
+          if (key === 'is_in_use') {
+            if (value === 'true') jsonData[key] = true;
+            else if (value === 'false') jsonData[key] = false;
+            else jsonData[key] = null;
+          }
+          // ID 필드들 - 이제 이름을 사용
+          else if (key === 'category' || key === 'owner' || key === 'location' || key === 'network_type') {
+            // 드롭다운에서 선택한 이름을 그대로 사용
+            jsonData[key] = value;
+            console.log(`${key}: ${jsonData[key]} (문자열)`);
+          }
+          // 좌표값은 숫자로 변환
+          else if (key === 'xCoordinate' || key === 'yCoordinate') {
+            // xCoordinate → x_coordinate, yCoordinate → y_coordinate로 변환
+            const newKey = key === 'xCoordinate' ? 'x_coordinate' : 'y_coordinate';
+            jsonData[newKey] = parseFloat(value);
+          }
+          // 나머지는 문자열로
+          else {
+            jsonData[key] = value;
+          }
+        }
+      }
+
+      console.log("제출할 자산 데이터:", jsonData);
+
+      // 데이터 유효성 검사
+      if (!jsonData.name || !jsonData.serial_number || !jsonData.management_number) {
+        alert("필수 입력 항목을 모두 입력해주세요.");
+        return;
+      }
+
+      // 자산 직접 제출 (카테고리 생성 없이)
+      submitAsset(jsonData, isUpdate, assetId);
+    }
+
+    // 자산 직접 추가
+    function submitAsset(assetData, isUpdate, assetId) {
+      try {
+        // API 엔드포인트 결정 (추가 또는 수정)
+        const url = isUpdate ? `/api/assets/${assetId}` : "/api/assets/";
+        const method = isUpdate ? "PUT" : "POST";
+
+        console.log("최종 제출 URL:", url);
+        console.log("HTTP 메소드:", method);
+        console.log("최종 제출 데이터:", JSON.stringify(assetData, null, 2));
+
+        // 로딩 표시 추가
+        const submitBtn = $("button[type='submit']");
+        submitBtn.prop("disabled", true).html(
+          '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 처리중...'
+        );
+
+        // API 호출
+        $.ajax({
+          url: url,
+          type: method,
+          contentType: "application/json",
+          data: JSON.stringify(assetData),
+          success: function(data) {
+            console.log("자산 " + (isUpdate ? "수정" : "추가") + " 성공:", data);
+
+            // 성공 메시지 표시
+            alert("자산이 성공적으로 " + (isUpdate ? "수정" : "추가") + "되었습니다.");
+
+            // 페이지 이동 - 추가 시 목록으로, 수정 시 상세 페이지로
+            if (isUpdate) {
+              window.location.href = "/assets/" + assetId;  // 상세 페이지로 이동
+            } else {
+              window.location.href = "/assets";  // 목록으로 이동
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error("자산 " + (isUpdate ? "수정" : "추가") + " 실패:", error);
+            console.error("상태 코드:", xhr.status);
+            console.error("상태 텍스트:", xhr.statusText);
+            console.error("응답 텍스트:", xhr.responseText);
+
+            let errorMessage = "자산 " + (isUpdate ? "수정" : "추가") + " 중 오류가 발생했습니다.";
+
+            try {
+              const response = JSON.parse(xhr.responseText);
+              console.error("응답 내용:", response);
+
+              if (response.detail) {
+                if (Array.isArray(response.detail)) {
+                  // Pydantic 검증 오류 형식
+                  errorMessage = "다음 오류가 발생했습니다:\n";
+                  response.detail.forEach(item => {
+                    errorMessage += `- ${item.loc.join('.')}에서 오류: ${item.msg}\n`;
+                  });
+                } else {
+                  errorMessage = response.detail;
+                }
+              } else if (response.message) {
+                errorMessage = response.message;
+              }
+            } catch (e) {
+              console.error("응답 파싱 오류:", e);
+              errorMessage += " 응답을 해석할 수 없습니다.";
+            }
+
+            alert(errorMessage);
+
+            // 버튼 상태 복원
+            submitBtn.prop("disabled", false).html(
+              isUpdate ? '수정하기' : '추가하기'
+            );
+          }
+        });
+      } catch (e) {
+        console.error("submitAsset 함수 실행 중 오류 발생:", e);
+        alert("자산 제출 처리 중 오류가 발생했습니다: " + e.message);
+        $("button[type='submit']").prop("disabled", false).html(
+          isUpdate ? '수정하기' : '추가하기'
+        );
+      }
+    }
+  });
+
+  // 자산 데이터 로드 함수
+  function loadAssetData(assetId) {
+    console.log(`자산 ID ${assetId}의 데이터 로드 시작`);
+
+    $.ajax({
+      url: `/api/assets/${assetId}`,
+      type: "GET",
+      dataType: "json",
+      cache: false,
+      success: function(data) {
+        console.log("자산 데이터 로드 성공:", data);
+
+        // 기본 필드 채우기
+        $("#name").val(data.name);
+        $("#serial_number").val(data.serial_number);
+        $("#management_number").val(data.management_number);
+        $("#ip_address").val(data.ip_address);
+        $("#description").val(data.description);
+        $("#purchase_date").val(data.purchase_date);
+        $("#warranty_expiry").val(data.warranty_expiry);
+        $("#price").val(data.price);
+        $("#manufacturer").val(data.manufacturer);
+        $("#model").val(data.model);
+        $("#notes").val(data.notes);
+
+        // 특별 처리가 필요한 필드
+        // 사용 여부 (라디오 버튼)
+        if (data.is_in_use === true) {
+          $("#usage_true").prop("checked", true);
+        } else if (data.is_in_use === false) {
+          $("#usage_false").prop("checked", true);
+        } else {
+          $("#usage_null").prop("checked", true);
+        }
+
+        // 드롭다운 필드 (카테고리, 소유자, 위치, 네트워크망)
+        // 드롭다운은 비동기 로드가 필요할 수 있으므로 약간의 지연 후 설정
+        setTimeout(function() {
+          // 카테고리 선택
+          if (data.category) {
+            $("#category").val(data.category);
+            console.log(`카테고리를 '${data.category}'로 설정했습니다.`);
+          }
+
+          // 소유자 선택
+          if (data.owner) {
+            $("#owner").val(data.owner);
+            console.log(`소유자를 '${data.owner}'로 설정했습니다.`);
+          }
+
+          // 위치 선택
+          if (data.location) {
+            $("#location").val(data.location);
+          }
+
+          // 네트워크망 선택
+          if (data.network_type) {
+            $("#network_type").val(data.network_type);
+          }
+
+          // 좌표값 설정
+          if (data.x_coordinate !== null) {
+            $("#xCoordinate").val(data.x_coordinate);
+            // 좌표 정보 표시
+            $("#xDisplay").text(data.x_coordinate + "%");
+            $("#yDisplay").text(data.y_coordinate + "%");
+            $("#coordinateDisplay").removeClass("d-none");
+          }
+          if (data.y_coordinate !== null) {
+            $("#yCoordinate").val(data.y_coordinate);
+          }
+        }, 500);
+
+        // 변경 이력 로드
+        if (data.histories && Array.isArray(data.histories)) {
+          console.log("자산에 포함된 변경 이력 데이터:", data.histories);
+          renderAssetHistory(data.histories);
+        } else {
+          console.log("자산에 변경 이력 데이터가 없습니다.");
+          $("#historyList").empty();
+          $("#noHistory").removeClass("d-none");
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error("자산 데이터 로드 실패:", error);
+        alert("자산 정보를 불러오는데 실패했습니다.");
+      }
+    });
+  }
+
+  // 변경 이력 렌더링 함수
+  function renderAssetHistory(historyData) {
+    const historyList = $("#historyList");
+    historyList.empty();
+
+    if (!historyData || !Array.isArray(historyData) || historyData.length === 0) {
+      $("#historyList").empty();
+      $("#noHistory").removeClass("d-none");
+      return;
+    }
+
+    $("#noHistory").addClass("d-none");
+
+    // 변경 이력 항목 생성
+    historyData.forEach((history, index) => {
+      const timestamp = new Date(history.created_at || history.timestamp);
+      const formattedDate = timestamp.toLocaleString();
+
+      // 변경된 필드 목록 추출
+      let changedFields = "";
+      if (history.changed_fields) {
+        if (typeof history.changed_fields === 'object') {
+          changedFields = Object.keys(history.changed_fields).join(", ");
+        } else if (Array.isArray(history.changed_fields)) {
+          changedFields = history.changed_fields.join(", ");
+        } else {
+          changedFields = "정보 변경";
+        }
+      } else {
+        changedFields = "정보 변경";
+      }
+
+      const historyItem = `
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="historyHeading${index}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#historyCollapse${index}" aria-expanded="false"
+                    aria-controls="historyCollapse${index}">
+              <span class="me-3 text-nowrap"><i class="fas fa-calendar-alt"></i> ${formattedDate}</span>
+              <span class="me-2"><i class="fas fa-user"></i> ${history.user || "시스템"}</span>
+              <span class="badge bg-info ms-auto">${changedFields}</span>
+            </button>
+          </h2>
+          <div id="historyCollapse${index}" class="accordion-collapse collapse"
+               aria-labelledby="historyHeading${index}" data-bs-parent="#historyList">
+            <div class="accordion-body">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                  <thead>
+                    <tr>
+                      <th>필드</th>
+                      <th>이전 값</th>
+                      <th>변경 값</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${renderChangesTable(history.changed_fields || {})}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      historyList.append(historyItem);
+    });
+
+    console.log(`${historyData.length}개의 변경 이력이 렌더링되었습니다.`);
+  }
+
+  // 변경 사항 테이블 생성 함수
+  function renderChangesTable(changes) {
+    if (!changes || Object.keys(changes).length === 0) {
+      return '<tr><td colspan="3" class="text-center">상세 변경 내용이 없습니다.</td></tr>';
+    }
+
+    let rows = '';
+    for (const [field, change] of Object.entries(changes)) {
+      // 필드 이름을 한글로 변환
+      const fieldName = getFieldKoreanName(field);
+
+      // 이전 값과 새 값 처리
+      let oldValue, newValue;
+      if (typeof change === 'object' && change !== null) {
+        // 변경 객체가 { old: value, new: value } 형식인 경우
+        if ('old' in change || 'old_value' in change) {
+          oldValue = change.old || change.old_value;
+          newValue = change.new || change.new_value;
+        } else {
+          oldValue = '이전 값 없음';
+          newValue = JSON.stringify(change);
+        }
+      } else {
+        oldValue = '이전 값 없음';
+        newValue = change;
+      }
+
+      // null 값 처리
+      if (oldValue === null || oldValue === undefined) oldValue = '<span class="text-muted">없음</span>';
+      if (newValue === null || newValue === undefined) newValue = '<span class="text-muted">없음</span>';
+
+      // boolean 값 처리
+      if (typeof oldValue === 'boolean') {
+        oldValue = oldValue ? '<span class="badge bg-success">예</span>' : '<span class="badge bg-danger">아니오</span>';
+      }
+      if (typeof newValue === 'boolean') {
+        newValue = newValue ? '<span class="badge bg-success">예</span>' : '<span class="badge bg-danger">아니오</span>';
+      }
+
+      // 변경이 있는 부분 강조
+      const row = `
+        <tr>
+          <td>${fieldName}</td>
+          <td class="text-danger">${oldValue}</td>
+          <td class="text-success">${newValue}</td>
+        </tr>
+      `;
+
+      rows += row;
+    }
+
+    return rows;
+  }
+
+  // 필드 이름을 한글로 변환하는 함수
+  function getFieldKoreanName(field) {
+    const fieldMap = {
+      'name': '자산명',
+      'category': '카테고리',
+      'serial_number': '시리얼 넘버',
+      'management_number': '관리 넘버',
+      'owner': '소유자',
+      'location': '보관 장소',
+      'network_type': '네트워크망',
+      'is_in_use': '사용여부',
+      'ip_address': 'IP 주소',
+      'mac_address': 'MAC 주소',
+      'x_coordinate': 'X 좌표',
+      'y_coordinate': 'Y 좌표',
+      'description': '설명',
+      'purchase_date': '구매일',
+      'warranty_expiry': '보증기간',
+      'price': '가격',
+      'manufacturer': '제조사',
+      'model': '모델명',
+      'notes': '비고'
+    };
+
+    return fieldMap[field] || field;
+  }
+</script>
+{% endblock %}

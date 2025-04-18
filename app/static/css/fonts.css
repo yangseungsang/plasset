@@ -1,0 +1,56 @@
+/* 웹폰트를 로컬 폰트로 대체하는 CSS */
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../fonts/noto-sans-kr/noto-sans-kr-v27-korean-regular.woff2') format('woff2'),
+       local('Noto Sans KR Regular'), local('NotoSansKR-Regular'), local('Malgun Gothic'), local('맑은 고딕'), local('Apple SD Gothic Neo');
+}
+
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 500;
+  src: url('../fonts/noto-sans-kr/noto-sans-kr-v27-korean-500.woff2') format('woff2'),
+       local('Noto Sans KR Medium'), local('NotoSansKR-Medium'), local('Malgun Gothic Bold'), local('맑은 고딕 Bold'), local('Apple SD Gothic Neo Bold');
+}
+
+@font-face {
+  font-family: 'Noto Sans KR';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../fonts/noto-sans-kr/noto-sans-kr-v27-korean-700.woff2') format('woff2'),
+       local('Noto Sans KR Bold'), local('NotoSansKR-Bold'), local('Malgun Gothic Bold'), local('맑은 고딕 Bold'), local('Apple SD Gothic Neo Bold');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../fonts/poppins/poppins-v20-latin-regular.woff2') format('woff2'),
+       local('Poppins Regular'), local('Arial'), local('Helvetica');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  src: url('../fonts/poppins/poppins-v20-latin-500.woff2') format('woff2'),
+       local('Poppins Medium'), local('Arial Bold'), local('Helvetica Bold');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../fonts/poppins/poppins-v20-latin-600.woff2') format('woff2'),
+       local('Poppins SemiBold'), local('Arial Bold'), local('Helvetica Bold');
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../fonts/poppins/poppins-v20-latin-700.woff2') format('woff2'),
+       local('Poppins Bold'), local('Arial Bold'), local('Helvetica Bold');
+} 

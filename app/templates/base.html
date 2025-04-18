@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="자산 관리 시스템 - 효율적인 자산 관리를 위한 솔루션"
+    />
+    <meta name="theme-color" content="#6366f1" />
+    <title>{% block title %}자산 관리 시스템{% endblock %}</title>
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="/static/images/favicon.ico" />
+    <link rel="apple-touch-icon" href="/static/images/apple-touch-icon.png" />
+
+    <!-- 로컬 폰트 -->
+    <link rel="stylesheet" href="/static/css/fonts.css" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/static/external/bootstrap.min.css" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/static/external/all.min.css" />
+
+    <!-- Custom CSS -->
+    <link href="/static/css/styles.css" rel="stylesheet" />
+
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- 사이드바 -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <a href="/" class="sidebar-logo">
+            <i class="fas fa-cubes"></i>
+            <span>자산관리</span>
+          </a>
+          <button id="sidebar-toggle" class="sidebar-toggle d-md-none">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+
+        <div class="sidebar-content">
+          <nav class="sidebar-nav">
+            <ul class="sidebar-menu">
+              <li class="sidebar-menu-header">메인 메뉴</li>
+              <li class="sidebar-menu-item">
+                <a href="/assets" class="sidebar-menu-link">
+                  <i class="fas fa-th-list"></i>
+                  <span>자산 목록</span>
+                </a>
+              </li>
+              <li class="sidebar-menu-item">
+                <a href="/assets/create" class="sidebar-menu-link">
+                  <i class="fas fa-plus-circle"></i>
+                  <span>자산 등록</span>
+                </a>
+              </li>
+              <li class="sidebar-menu-header">관리</li>
+              <li class="sidebar-menu-item">
+                <a href="/locations" class="sidebar-menu-link">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>위치 관리</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="dropdown">
+            <button
+              class="btn dropdown-toggle user-dropdown"
+              type="button"
+              id="userMenu"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <div class="user-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <div class="user-info">
+                <span class="user-name"
+                  >{% if user %}{{ user.full_name or user.username }}{% else
+                  %}관리자{% endif %}</span
+                >
+                <span class="user-role">시스템 관리</span>
+              </div>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="userMenu">
+              <li>
+                <a class="dropdown-item" href="#"
+                  ><i class="fas fa-user-cog me-2"></i>계정 설정</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" href="/logout"
+                  ><i class="fas fa-sign-out-alt me-2"></i>로그아웃</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 메인 콘텐츠 -->
+      <main class="main-content">
+        <!-- 헤더 -->
+        <header class="header">
+          <div class="header-left">
+            <button id="mobile-toggle" class="mobile-toggle d-md-none">
+              <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="page-title">
+              {% block page_title %}자산 관리 시스템{% endblock %}
+            </h1>
+          </div>
+          <div class="header-right">
+            <!-- 여기서 알림, 헬프, 검색 섹션 제거 -->
+          </div>
+        </header>
+
+        <!-- 페이지 콘텐츠 -->
+        <div class="page-content">{% block content %}{% endblock %}</div>
+
+        <!-- 푸터 -->
+        <footer class="footer">
+          <div class="footer-content">
+            <div class="footer-left">
+              <span class="copyright"
+                >© 2025 자산관리 시스템 developed by sil</span
+              >
+            </div>
+            <div class="footer-right">
+              <!-- 도움말과 개인정보처리방침 링크 삭제 -->
+            </div>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+    <!-- jQuery -->
+    <script src="/static/external/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="/static/external/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+
+    <!-- 공통 JavaScript -->
+    <script>
+      // 사이드바 토글 기능
+      $(document).ready(function () {
+        // 사이드바 토글 버튼 클릭 이벤트
+        $("#sidebar-toggle").click(function () {
+          $(".sidebar").toggleClass("collapsed");
+          $("body").toggleClass("sidebar-collapsed");
+        });
+
+        // 현재 경로 가져오기
+        const currentPath = window.location.pathname;
+
+        // 모든 사이드바 아이템에서 active 클래스 제거 (초기화)
+        $(".sidebar-menu-item").removeClass("active");
+
+        // 현재 경로에 따라 해당 메뉴 항목에 active 클래스 추가
+        if (
+          currentPath.includes("/assets/create") ||
+          currentPath.includes("/assets/edit")
+        ) {
+          // 자산 등록/수정 페이지
+          $(".sidebar-menu-link[href='/assets/create']")
+            .parent()
+            .addClass("active");
+        } else if (
+          currentPath === "/assets" ||
+          currentPath.includes("/assets/view")
+        ) {
+          // 자산 목록 페이지
+          $(".sidebar-menu-link[href='/assets']").parent().addClass("active");
+        } else if (
+          currentPath === "/locations" ||
+          currentPath.includes("/locations/")
+        ) {
+          // 위치 관리 페이지
+          $(".sidebar-menu-link[href='/locations']")
+            .parent()
+            .addClass("active");
+        }
+      });
+    </script>
+  </body>
+</html>

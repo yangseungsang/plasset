@@ -1,0 +1,809 @@
+{% extends "base.html" %} {% block title %}{{ title }}{% endblock %} {% block
+content %}
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h1>
+      <i class="fas fa-map-marker-alt"></i>
+      <span id="locationName">위치 상세</span>
+    </h1>
+  </div>
+  <div class="col-md-4 text-end">
+    <a href="/locations" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> 목록으로
+    </a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card mb-4">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5 class="mb-0"><i class="fas fa-image"></i> 위치 이미지</h5>
+        <div class="d-flex align-items-center">
+          <div class="network-legend me-3">
+            <span class="legend-title">네트워크망 색상:</span>
+            <span class="network-badge badge bg-primary me-1">사내망</span>
+            <span class="network-badge badge bg-success me-1">장비망</span>
+            <span class="network-badge badge bg-warning me-1">혼합</span>
+            <span class="network-badge badge bg-secondary me-1">없음</span>
+            <span class="network-badge badge bg-dark me-1">모름</span>
+          </div>
+          <button id="uploadImageBtn" class="btn btn-sm btn-primary">
+            <i class="fas fa-upload"></i> 이미지 업로드
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="position-relative image-container">
+          <img
+            id="locationImage"
+            src="/static/images/placeholder.png"
+            class="img-fluid"
+            alt="위치 이미지"
+            style="max-height: 500px; width: 100%; object-fit: contain"
+          />
+
+          <!-- 자산 마커가 여기에 동적으로 추가됨 -->
+          <div id="assetMarkers"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="fas fa-boxes"></i> 이 위치의 자산</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead class="table-primary">
+              <tr>
+                <th>#</th>
+                <th>자산명</th>
+                <th>카테고리</th>
+                <th>시리얼 넘버</th>
+                <th>관리 넘버</th>
+                <th>IP 주소</th>
+                <th>소유자</th>
+                <th>보관 장소</th>
+                <th>네트워크망</th>
+                <th>위치 설정</th>
+              </tr>
+            </thead>
+            <tbody id="assetsList">
+              <!-- 자산 목록이 여기에 동적으로 로드됨 -->
+            </tbody>
+          </table>
+        </div>
+        <div id="noAssets" class="text-center p-3 d-none">
+          <p>이 위치에 등록된 자산이 없습니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 이미지 업로드 모달 -->
+<div class="modal fade" id="uploadImageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-image"></i> 위치 이미지 업로드
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="uploadImageForm">
+          <div class="mb-3">
+            <label for="uploadImage" class="form-label">이미지 파일 *</label>
+            <input
+              type="file"
+              class="form-control"
+              id="uploadImage"
+              name="file"
+              accept="image/*"
+              required
+            />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          취소
+        </button>
+        <button type="button" class="btn btn-primary" id="confirmUploadBtn">
+          업로드
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 위치 설정 모달 -->
+<div class="modal fade" id="setPositionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-map-pin"></i>
+          <span id="positionAssetName"></span> 위치 설정
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-3">
+          이미지에서 자산의 위치를 클릭하여 설정하세요.
+        </p>
+        <div class="position-relative image-container">
+          <div
+            class="position-relative overflow-hidden"
+            style="max-width: 100%"
+          >
+            <img
+              id="positionImage"
+              src=""
+              class="img-fluid"
+              alt="위치 이미지"
+              style="max-height: 500px; width: 100%; object-fit: contain"
+            />
+            <div
+              id="positionMarker"
+              class="position-absolute"
+              style="
+                width: 20px;
+                height: 20px;
+                background-color: red;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                display: none;
+                z-index: 10;
+              "
+            ></div>
+          </div>
+        </div>
+        <input type="hidden" id="positionAssetId" />
+        <input type="hidden" id="positionX" />
+        <input type="hidden" id="positionY" />
+        <input type="hidden" id="initialX" />
+        <input type="hidden" id="initialY" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          취소
+        </button>
+        <button type="button" class="btn btn-danger" id="resetPositionBtn">
+          위치 초기화
+        </button>
+        <button type="button" class="btn btn-primary" id="savePositionBtn">
+          저장
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
+<style>
+  .asset-marker {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: #007bff; /* 기본 파란색 (사내망) */
+    border-radius: 50%;
+    border: 2px solid white;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* 네트워크망에 따른 마커 색상 */
+  .asset-marker.network-internal {
+    background-color: #007bff; /* 사내망: 파란색 */
+  }
+
+  .asset-marker.network-equipment {
+    background-color: #28a745; /* 장비망: 녹색 */
+  }
+
+  .asset-marker.network-mixed {
+    background-color: #ffc107; /* 혼합: 노란색 */
+  }
+
+  .asset-marker.network-none {
+    background-color: #6c757d; /* 없음: 회색 */
+  }
+
+  .asset-marker.network-unknown {
+    background-color: #343a40; /* 모름: 검정색 */
+  }
+
+  .network-legend {
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .legend-title {
+    margin-right: 8px;
+    font-weight: bold;
+  }
+
+  .network-badge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+
+  .marker-index {
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .asset-marker:hover {
+    width: 28px;
+    height: 28px;
+    background-color: #0056b3;
+    z-index: 10;
+  }
+
+  .asset-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 20;
+    display: none;
+    white-space: nowrap;
+  }
+
+  .asset-marker:hover + .asset-tooltip {
+    display: block;
+  }
+
+  .image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .highlight-row {
+    background-color: #e6f7ff !important;
+  }
+</style>
+{% endblock %} {% block extra_js %}
+<script>
+  let location_data = {};
+  let assets = [];
+  let locationId = {{ location_id }};
+
+  $(document).ready(function() {
+      // 위치 정보 로드
+      loadLocation();
+
+      // 이미지 업로드 버튼 클릭 이벤트
+      $('#uploadImageBtn').click(function() {
+          $('#uploadImageModal').modal('show');
+      });
+
+      // 이미지 업로드 확인 버튼 클릭 이벤트
+      $('#confirmUploadBtn').click(function() {
+          uploadLocationImage();
+      });
+
+      // 위치 저장 버튼 클릭 이벤트
+      $('#savePositionBtn').click(function() {
+          saveAssetPosition();
+      });
+
+      // 위치 초기화 버튼 클릭 이벤트
+      $('#resetPositionBtn').click(function() {
+          resetAssetPosition();
+      });
+  });
+
+  // 위치 정보 로드 함수
+  function loadLocation() {
+      $.ajax({
+          url: `/api/locations/${locationId}`,
+          type: 'GET',
+          success: function(data) {
+              location_data = data;
+              displayLocationInfo();
+              // 위치 정보 로드 후 자산 목록 로드
+              loadLocationAssets();
+          },
+          error: function(error) {
+              console.error('Error loading location:', error);
+              alert('위치 정보를 불러오는데 실패했습니다.');
+          }
+      });
+  }
+
+  // 위치 정보 표시 함수
+  function displayLocationInfo() {
+      $('#locationName').text(location_data.name);
+
+      // 이미지가 있는 경우 표시
+      if (location_data.image_path) {
+          // 이미지 경로가 이미 /static/images/로 시작하는지 확인
+          const imagePath = location_data.image_path.startsWith('/static/images/')
+              ? location_data.image_path
+              : `/static/images/${location_data.image_path}`;
+
+          console.log('위치 이미지 경로:', imagePath);
+          $('#locationImage').attr('src', imagePath);
+      }
+  }
+
+  // 이 위치의 자산 목록 로드 함수
+  function loadLocationAssets() {
+      // 먼저 위치 정보가 로드되었는지 확인
+      if (!location_data || !location_data.name) {
+          console.error('위치 정보가 로드되지 않았습니다.');
+          setTimeout(loadLocationAssets, 500); // 잠시 후 다시 시도
+          return;
+      }
+
+      $.ajax({
+          url: `/api/assets/?location=${encodeURIComponent(location_data.name)}`,
+          type: 'GET',
+          success: function(data) {
+              assets = data;
+              console.log('로드된 자산 목록:', assets);
+              renderAssetsList();
+              renderAssetMarkers();
+          },
+          error: function(error) {
+              console.error('Error loading assets:', error);
+              alert('자산 목록을 불러오는데 실패했습니다.');
+          }
+      });
+  }
+
+  // 자산 목록 렌더링 함수
+  function renderAssetsList() {
+      const assetsList = $('#assetsList');
+      assetsList.empty();
+
+      if (assets.length === 0) {
+          $('#noAssets').removeClass('d-none');
+          return;
+      }
+
+      $('#noAssets').addClass('d-none');
+
+      assets.forEach((asset, index) => {
+          // null 값 처리
+          const ipAddress = asset.ip_address || '-';
+          const owner = asset.owner || '-';
+          const networkType = asset.network_type || '-';
+
+          // 네트워크망에 따른 배지 스타일 결정
+          let networkBadgeClass = "bg-dark"; // 기본값 (모름)
+          if (networkType === '사내망') {
+              networkBadgeClass = "bg-primary";
+          } else if (networkType === '장비망') {
+              networkBadgeClass = "bg-success";
+          } else if (networkType === '혼합') {
+              networkBadgeClass = "bg-warning";
+          } else if (networkType === '없음') {
+              networkBadgeClass = "bg-secondary";
+          }
+
+          assetsList.append(`
+              <tr>
+                  <td>${index + 1}</td>
+                  <td><a href="/assets/${asset.id}">${asset.name}</a></td>
+                  <td>${asset.category}</td>
+                  <td>${asset.serial_number}</td>
+                  <td>${asset.management_number}</td>
+                  <td>${ipAddress}</td>
+                  <td>${owner}</td>
+                  <td>${location_data.name}</td>
+                  <td><span class="badge ${networkBadgeClass}">${networkType}</span></td>
+                  <td>
+                      <button class="btn btn-sm btn-primary set-position" data-id="${asset.id}" data-name="${asset.name}" data-index="${index + 1}">
+                          <i class="fas fa-map-pin"></i> 위치 설정
+                      </button>
+                  </td>
+              </tr>
+          `);
+      });
+
+      // 위치 설정 버튼 이벤트 연결
+      $('.set-position').click(function() {
+          const assetId = $(this).data('id');
+          const assetName = $(this).data('name');
+          const assetIndex = $(this).data('index');
+
+          // 테이블에서 해당 행 하이라이트
+          $('#assetsList tr').removeClass('highlight-row');
+          $(this).closest('tr').addClass('highlight-row');
+
+          openSetPositionModal(assetId, assetName, assetIndex);
+      });
+  }
+
+  // 자산 마커 렌더링 함수 수정
+  function renderAssetMarkers() {
+      const markerContainer = $('#assetMarkers');
+      markerContainer.empty();
+
+      // 이미지가 없거나 자산이 없는 경우 종료
+      if (!location_data.image_path || assets.length === 0) {
+          return;
+      }
+
+      // 이미지 로드를 확인하고 마커 배치
+      const locationImage = $('#locationImage')[0];
+
+      // 이미지가 이미 로드되었는지 확인
+      if (locationImage.complete) {
+          placeAssetMarkers(locationImage);
+      } else {
+          // 이미지 로드 후 마커 배치
+          $('#locationImage').on('load', function() {
+              placeAssetMarkers(locationImage);
+          });
+      }
+  }
+
+  // 자산 마커 배치 함수 추가
+  function placeAssetMarkers(imageElement) {
+      const markerContainer = $('#assetMarkers');
+
+      // 실제 이미지 요소의 위치와 크기 정보
+      const imageRect = imageElement.getBoundingClientRect();
+      const naturalWidth = imageElement.naturalWidth;
+      const naturalHeight = imageElement.naturalHeight;
+      const displayWidth = imageRect.width;
+      const displayHeight = imageRect.height;
+
+      // 이미지 표시 비율 계산
+      const displayRatio = displayWidth / displayHeight;
+      const naturalRatio = naturalWidth / naturalHeight;
+
+      // 실제 이미지가 표시되는 영역 계산
+      let actualWidth, actualHeight, offsetLeft, offsetTop;
+      if (displayRatio > naturalRatio) {
+          // 이미지 세로 기준으로 맞춰짐 (좌우 여백 발생)
+          actualHeight = displayHeight;
+          actualWidth = naturalRatio * actualHeight;
+          offsetLeft = (displayWidth - actualWidth) / 2;
+          offsetTop = 0;
+      } else {
+          // 이미지 가로 기준으로 맞춰짐 (상하 여백 발생)
+          actualWidth = displayWidth;
+          actualHeight = actualWidth / naturalRatio;
+          offsetLeft = 0;
+          offsetTop = (displayHeight - actualHeight) / 2;
+      }
+
+      console.log(`이미지 표시 영역: ${actualWidth}x${actualHeight}, 오프셋: ${offsetLeft},${offsetTop}`);
+
+      // 마커 컨테이너의 크기 설정 (이미지 컨테이너와 동일)
+      markerContainer.css({
+          'position': 'absolute',
+          'left': `${offsetLeft}px`,
+          'top': `${offsetTop}px`,
+          'width': `${actualWidth}px`,
+          'height': `${actualHeight}px`,
+          'pointer-events': 'none' // 마커 컨테이너 자체는 마우스 이벤트 무시
+      });
+
+      assets.forEach((asset, index) => {
+          // 좌표가 있는 자산만 마커 표시
+          if (asset.x_coordinate !== null && asset.y_coordinate !== null) {
+              // 좌표가 이미지 범위 내에 있는지 확인 (0-100% 사이)
+              if (asset.x_coordinate >= 0 && asset.x_coordinate <= 100 &&
+                  asset.y_coordinate >= 0 && asset.y_coordinate <= 100) {
+
+                  // 네트워크망에 따른 마커 클래스 결정
+                  let networkClass = "network-unknown"; // 기본값 (모름)
+                  if (asset.network_type === '사내망') {
+                      networkClass = "network-internal";
+                  } else if (asset.network_type === '장비망') {
+                      networkClass = "network-equipment";
+                  } else if (asset.network_type === '혼합') {
+                      networkClass = "network-mixed";
+                  } else if (asset.network_type === '없음') {
+                      networkClass = "network-none";
+                  }
+
+                  // 마커와 툴팁 추가
+                  const markerIndex = index + 1;
+                  const marker = $(`
+                      <div class="asset-marker ${networkClass}"
+                           style="left: ${asset.x_coordinate}%; top: ${asset.y_coordinate}%;"
+                           data-id="${asset.id}" data-name="${asset.name}" data-index="${markerIndex}">
+                          <span class="marker-index">${markerIndex}</span>
+                      </div>
+                  `);
+
+                  const tooltip = $(`
+                      <div class="asset-tooltip"
+                           style="left: ${asset.x_coordinate}%; top: ${asset.y_coordinate - 3}%;">
+                          ${markerIndex}. ${asset.name} (${asset.serial_number})
+                          <br>IP: ${asset.ip_address || '없음'}
+                          <br>소유자: ${asset.owner || '없음'}
+                          <br>네트워크망: ${asset.network_type || '없음'}
+                      </div>
+                  `);
+
+                  markerContainer.append(marker);
+                  markerContainer.append(tooltip);
+
+                  // 마커에 이벤트 연결 (pointer-events 활성화)
+                  marker.css('pointer-events', 'auto');
+
+                  // 마커 클릭 이벤트
+                  marker.on('click', function() {
+                      const assetId = $(this).data('id');
+                      const assetName = $(this).data('name');
+                      const assetIndex = $(this).data('index');
+
+                      // 테이블에서 해당 행 하이라이트
+                      highlightAssetRow(assetId);
+
+                      openSetPositionModal(assetId, assetName, assetIndex);
+                  });
+              }
+          }
+      });
+  }
+
+  // 테이블에서 해당 자산 행 하이라이트하는 함수 추가
+  function highlightAssetRow(assetId) {
+      // 모든 행에서 하이라이트 클래스 제거
+      $('#assetsList tr').removeClass('highlight-row');
+
+      // 찾은 자산 행에 하이라이트 클래스 추가
+      $(`#assetsList button[data-id="${assetId}"]`).closest('tr').addClass('highlight-row');
+
+      // 해당 행으로 스크롤
+      const highlightedRow = $(`#assetsList button[data-id="${assetId}"]`).closest('tr');
+      if (highlightedRow.length) {
+          $('html, body').animate({
+              scrollTop: highlightedRow.offset().top - 200
+          }, 500);
+      }
+  }
+
+  // 날짜 형식 변환 함수
+  function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+      });
+  }
+
+  // 위치 설정 모달 열기 함수 수정
+  function openSetPositionModal(assetId, assetName, assetIndex) {
+      const asset = assets.find(a => a.id === assetId);
+
+      // 인덱스가 제공된 경우, 번호를 표시에 포함
+      const displayName = assetIndex ? `#${assetIndex} ${assetName}` : assetName;
+      $('#positionAssetName').text(displayName);
+      $('#positionAssetId').val(assetId);
+
+      // 이미지 경로 처리 (메인 이미지와 동일하게)
+      const imagePath = location_data.image_path.startsWith('/static/images/')
+          ? location_data.image_path
+          : `/static/images/${location_data.image_path}`;
+
+      $('#positionImage').attr('src', imagePath);
+
+      // 초기 위치를 저장 (초기화 시 사용)
+      // 기존 위치가 있으면 그 위치를, 없으면 이미지 중앙으로 설정
+      let initialX, initialY;
+      if (asset.x_coordinate !== null && asset.y_coordinate !== null) {
+          initialX = asset.x_coordinate;
+          initialY = asset.y_coordinate;
+      } else {
+          initialX = 50; // 이미지 중앙 X
+          initialY = 50; // 이미지 중앙 Y
+      }
+
+      // 초기 위치 저장
+      $('#initialX').val(initialX);
+      $('#initialY').val(initialY);
+
+      // 마커 위치 설정
+      $('#positionX').val(initialX);
+      $('#positionY').val(initialY);
+      $('#positionMarker').css({
+          left: `${initialX}%`,
+          top: `${initialY}%`,
+          display: 'block'
+      });
+
+      // 이미지 로드 완료 후 이벤트 설정
+      $('#positionImage').on('load', function() {
+          setupPositionImageClickEvent();
+      });
+
+      $('#setPositionModal').modal('show');
+  }
+
+  // 위치 이미지 클릭 이벤트 설정 함수 개선
+  function setupPositionImageClickEvent() {
+      const positionImage = $('#positionImage')[0];
+      const positionMarker = $('#positionMarker');
+      const imageContainer = positionImage.parentElement;
+
+      // 이미지 클릭 이벤트
+      $('#positionImage').off('click').on('click', function(e) {
+          e.preventDefault(); // 기본 동작 방지
+
+          // 이미지 요소의 실제 위치와 크기 가져오기
+          const rect = positionImage.getBoundingClientRect();
+
+          // 이미지 내 클릭 위치 계산 (이미지 왼쪽 상단 기준)
+          const clickX = e.clientX - rect.left;
+          const clickY = e.clientY - rect.top;
+
+          // 원본 이미지와 표시된 이미지의 비율 계산
+          const naturalWidth = positionImage.naturalWidth;
+          const naturalHeight = positionImage.naturalHeight;
+          const displayWidth = rect.width;
+          const displayHeight = rect.height;
+
+          // 이미지 표시 비율 계산
+          const displayRatio = displayWidth / displayHeight;
+          const naturalRatio = naturalWidth / naturalHeight;
+
+          // 실제 이미지 표시 영역 계산 (비율 유지로 인한 여백 고려)
+          let actualWidth, actualHeight, offsetLeft, offsetTop;
+
+          if (displayRatio > naturalRatio) {
+              // 이미지 높이 기준 (좌우 여백)
+              actualHeight = displayHeight;
+              actualWidth = actualHeight * naturalRatio;
+              offsetLeft = (displayWidth - actualWidth) / 2;
+              offsetTop = 0;
+          } else {
+              // 이미지 너비 기준 (상하 여백)
+              actualWidth = displayWidth;
+              actualHeight = actualWidth / naturalRatio;
+              offsetLeft = 0;
+              offsetTop = (displayHeight - actualHeight) / 2;
+          }
+
+          // 이미지 내부 영역인지 확인
+          if (clickX >= offsetLeft && clickX <= offsetLeft + actualWidth &&
+              clickY >= offsetTop && clickY <= offsetTop + actualHeight) {
+
+              // 이미지 내 퍼센트 위치 계산
+              const xPercent = ((clickX - offsetLeft) / actualWidth) * 100;
+              const yPercent = ((clickY - offsetTop) / actualHeight) * 100;
+
+              // 0-100% 사이로 제한
+              const x = Math.max(0, Math.min(100, xPercent));
+              const y = Math.max(0, Math.min(100, yPercent));
+
+              // 좌표 저장
+              $('#positionX').val(x);
+              $('#positionY').val(y);
+
+              // 마커 위치 설정 (마커는 이미지의 직계 자식 요소)
+              positionMarker.css({
+                  left: x + '%',
+                  top: y + '%',
+                  display: 'block'
+              });
+
+              console.log(`선택 위치: x=${x.toFixed(2)}%, y=${y.toFixed(2)}%`);
+          } else {
+              console.log('이미지 영역 밖 클릭');
+          }
+      });
+  }
+
+  // 자산 위치 저장 함수
+  function saveAssetPosition() {
+      const assetId = $('#positionAssetId').val();
+      const x = $('#positionX').val();
+      const y = $('#positionY').val();
+
+      if (!x || !y) {
+          alert('위치를 선택해주세요.');
+          return;
+      }
+
+      const formData = new FormData();
+      formData.append('x_coordinate', x);
+      formData.append('y_coordinate', y);
+
+      $.ajax({
+          url: `/api/assets/update_coordinates/${assetId}`,
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function() {
+              $('#setPositionModal').modal('hide');
+              loadLocationAssets();
+          },
+          error: function(error) {
+              console.error('Error saving position:', error);
+              alert('위치 저장에 실패했습니다.');
+          }
+      });
+  }
+
+  // 위치 초기화 함수 수정
+  function resetAssetPosition() {
+      // 초기 위치로 되돌리기
+      const initialX = $('#initialX').val() || 50;
+      const initialY = $('#initialY').val() || 50;
+
+      // 마커 위치 초기화
+      $('#positionX').val(initialX);
+      $('#positionY').val(initialY);
+      $('#positionMarker').css({
+          left: `${initialX}%`,
+          top: `${initialY}%`,
+          display: 'block'
+      });
+
+      console.log(`위치 초기화: x=${initialX}%, y=${initialY}%`);
+  }
+
+  // 위치 이미지 업로드 함수
+  function uploadLocationImage() {
+      const file = $('#uploadImage')[0].files[0];
+
+      if (!file) {
+          alert('이미지 파일을 선택해주세요.');
+          return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      $.ajax({
+          url: `/api/upload_location_image/${locationId}`,
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(response) {
+              $('#uploadImageModal').modal('hide');
+              $('#uploadImage').val('');
+
+              // 페이지 새로고침 (새 이미지 반영)
+              window.location.reload();
+          },
+          error: function(error) {
+              console.error('Error uploading image:', error);
+              alert('이미지 업로드에 실패했습니다.');
+          }
+      });
+  }
+</script>
+{% endblock %}

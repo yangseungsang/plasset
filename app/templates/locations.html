@@ -1,0 +1,397 @@
+{% extends "base.html" %} {% block title %}{{ title }}{% endblock %} {% block
+content %}
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h1 class="display-6 fw-bold">
+      <i class="fas fa-map-marker-alt text-primary me-2"></i>보관 장소 관리
+    </h1>
+    <p class="text-muted">자산의 물리적 위치를 관리하고 자산을 배치하세요.</p>
+  </div>
+  <div class="col-md-4 text-end d-flex align-items-center justify-content-end">
+    <button
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#addLocationModal"
+    >
+      <i class="fas fa-plus-circle me-1"></i> 보관 장소 추가
+    </button>
+  </div>
+</div>
+
+<!-- 보관 장소 목록 -->
+<div class="card mb-4">
+  <div class="card-body p-0">
+    <div class="p-4">
+      <div class="row g-4" id="locationsList">
+        <!-- 위치 카드가 여기에 동적으로 로드됨 -->
+      </div>
+      <div id="noLocations" class="text-center p-5 d-none">
+        <img
+          src="/static/images/placeholder.png"
+          alt="No Locations"
+          class="img-fluid mb-3"
+          style="max-width: 150px; opacity: 0.5"
+        />
+        <p class="lead mb-0">등록된 보관 장소가 없습니다.</p>
+        <p class="text-muted">위치를 추가하여 자산을 효율적으로 관리하세요.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 보관 장소 추가 모달 -->
+<div class="modal fade" id="addLocationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-plus-circle text-primary me-2"></i> 보관 장소 추가
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="addLocationForm">
+          <div class="mb-3">
+            <label for="locationName" class="form-label"
+              >보관 장소명 <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="locationName"
+              name="name"
+              placeholder="예: 서버실, 창고, 사무실 등"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="locationImage" class="form-label">위치 이미지</label>
+            <input
+              type="file"
+              class="form-control"
+              id="locationImage"
+              name="image"
+              accept="image/*"
+            />
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i> 선택 사항: 자산의 위치를
+              표시할 도면 이미지를 업로드하세요.
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          data-bs-dismiss="modal"
+        >
+          취소
+        </button>
+        <button type="button" class="btn btn-primary" id="saveLocationBtn">
+          <i class="fas fa-save me-1"></i> 저장
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 이미지 업로드 모달 -->
+<div class="modal fade" id="uploadImageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-upload text-primary me-2"></i> 위치 이미지 업로드
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="uploadLocationImageForm">
+          <input type="hidden" id="uploadLocationId" name="locationId" />
+          <div class="mb-3">
+            <label for="uploadImage" class="form-label"
+              >이미지 파일 <span class="text-danger">*</span></label
+            >
+            <input
+              type="file"
+              class="form-control"
+              id="uploadImage"
+              name="image"
+              accept="image/*"
+              required
+            />
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i> 도면 이미지를 업로드하면
+              자산의 위치를 이미지 위에 표시할 수 있습니다.
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          data-bs-dismiss="modal"
+        >
+          취소
+        </button>
+        <button type="button" class="btn btn-primary" id="uploadImageBtn">
+          <i class="fas fa-upload me-1"></i> 업로드
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  let locations = [];
+
+  $(document).ready(function () {
+    // 보관 장소 목록 로드
+    loadLocations();
+
+    // 보관 장소 추가 버튼 클릭 이벤트
+    $("#saveLocationBtn").click(function () {
+      addLocation();
+    });
+
+    // 이미지 업로드 버튼 클릭 이벤트
+    $("#uploadImageBtn").click(function () {
+      uploadLocationImage();
+    });
+  });
+
+  // 보관 장소 목록 로드 함수
+  function loadLocations() {
+    $.ajax({
+      url: "/api/locations/",
+      type: "GET",
+      success: function (data) {
+        locations = data;
+        renderLocations();
+      },
+      error: function (error) {
+        console.error("Error loading locations:", error);
+        alert("보관 장소 목록을 불러오는데 실패했습니다.");
+      },
+    });
+  }
+
+  // 보관 장소 렌더링 함수
+  function renderLocations() {
+    const locationsList = $("#locationsList");
+    locationsList.empty();
+
+    if (locations.length === 0) {
+      $("#noLocations").removeClass("d-none");
+      return;
+    }
+
+    $("#noLocations").addClass("d-none");
+
+    locations.forEach((location) => {
+      const hasImage = location.image_path ? true : false;
+      const imageSrc = hasImage
+        ? location.image_path
+        : "/static/images/placeholder.png";
+
+      locationsList.append(`
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 location-card">
+                <div class="position-relative">
+                    <img src="${imageSrc}" class="card-img-top location-image" alt="${
+        location.name
+      }" 
+                         style="height: 180px; object-fit: cover;">
+                    <div class="position-absolute top-0 end-0 p-2">
+                        ${
+                          hasImage
+                            ? ""
+                            : `<button class="btn btn-sm btn-light upload-image shadow-sm" data-id="${location.id}">
+                            <i class="fas fa-upload"></i> 이미지 업로드
+                         </button>`
+                        }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">${location.name}</h5>
+                    <p class="card-text text-muted">
+                        <small>생성일: ${formatDate(
+                          location.created_at
+                        )}</small>
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between">
+                        <a href="/locations/${
+                          location.id
+                        }" class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i> 상세 보기
+                        </a>
+                        <button class="btn btn-danger btn-sm delete-location" data-id="${
+                          location.id
+                        }" data-name="${location.name}">
+                            <i class="fas fa-trash me-1"></i> 삭제
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+      `);
+    });
+
+    // 이미지 업로드 버튼 이벤트 연결
+    $(".upload-image").click(function () {
+      const locationId = $(this).data("id");
+      $("#uploadLocationId").val(locationId);
+      $("#uploadImageModal").modal("show");
+    });
+
+    // 삭제 버튼 이벤트 연결
+    $(".delete-location").click(function () {
+      const locationId = $(this).data("id");
+      const locationName = $(this).data("name");
+      deleteLocation(locationId, locationName);
+    });
+  }
+
+  // 날짜 형식 변환 함수
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
+  // 보관 장소 추가 함수
+  function addLocation() {
+    const locationName = $("#locationName").val();
+
+    if (!locationName) {
+      alert("보관 장소명을 입력해주세요.");
+      return;
+    }
+
+    const locationData = {
+      name: locationName,
+      image_path: null,
+    };
+
+    $.ajax({
+      url: "/api/locations/",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(locationData),
+      success: function (response) {
+        $("#addLocationModal").modal("hide");
+        $("#locationName").val("");
+
+        // 이미지가 선택된 경우 이미지 업로드 진행
+        const imageFile = $("#locationImage")[0].files[0];
+        if (imageFile) {
+          uploadImage(response.id, imageFile);
+        } else {
+          loadLocations();
+        }
+      },
+      error: function (error) {
+        console.error("Error adding location:", error);
+        alert("보관 장소 추가에 실패했습니다.");
+      },
+    });
+  }
+
+  // 이미지 업로드 함수 (보관 장소 추가 시)
+  function uploadImage(locationId, file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    $.ajax({
+      url: `/api/upload_location_image/${locationId}`,
+      type: "POST",
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function () {
+        loadLocations();
+      },
+      error: function (error) {
+        console.error("Error uploading image:", error);
+        alert("이미지 업로드에 실패했습니다.");
+        loadLocations();
+      },
+    });
+  }
+
+  // 이미지 업로드 함수 (모달에서)
+  function uploadLocationImage() {
+    const locationId = $("#uploadLocationId").val();
+    const imageFile = $("#uploadImage")[0].files[0];
+
+    if (!imageFile) {
+      alert("이미지 파일을 선택해주세요.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", imageFile);
+
+    $.ajax({
+      url: `/api/upload_location_image/${locationId}`,
+      type: "POST",
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function () {
+        $("#uploadImageModal").modal("hide");
+        $("#uploadImage").val(""); // 입력 필드 초기화
+        loadLocations();
+      },
+      error: function (error) {
+        console.error("Error uploading image:", error);
+        alert("이미지 업로드에 실패했습니다.");
+      },
+    });
+  }
+
+  // 보관 장소 삭제 함수
+  function deleteLocation(locationId, locationName) {
+    if (
+      !confirm(
+        `정말 [${locationName}] 보관 장소를 삭제하시겠습니까?\n\n이 보관 장소에 자산이 있는 경우 삭제할 수 없습니다.`
+      )
+    ) {
+      return;
+    }
+
+    $.ajax({
+      url: `/api/locations/${locationId}`,
+      type: "DELETE",
+      success: function (response) {
+        alert(response.message);
+        loadLocations();
+      },
+      error: function (xhr) {
+        if (xhr.responseJSON && xhr.responseJSON.detail) {
+          alert("오류: " + xhr.responseJSON.detail);
+        } else {
+          alert("보관 장소 삭제에 실패했습니다.");
+        }
+      },
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,345 @@
+{% extends "base.html" %} {% block title %}{{ title }}{% endblock %} {% block
+content %}
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h1><i class="fas fa-box"></i> <span id="assetName">자산 상세</span></h1>
+  </div>
+  <div class="col-md-4 text-end">
+    <a href="/assets" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> 목록으로
+    </a>
+    <a id="editBtn" href="/assets/{{ asset_id }}/edit" class="btn btn-warning">
+      <i class="fas fa-edit"></i> 수정
+    </a>
+    <button id="deleteBtn" class="btn btn-danger">
+      <i class="fas fa-trash"></i> 삭제
+    </button>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="fas fa-info-circle"></i> 기본 정보</h5>
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <tbody>
+            <tr>
+              <th style="width: 150px">자산명</th>
+              <td id="name"></td>
+            </tr>
+            <tr>
+              <th>카테고리</th>
+              <td id="category"></td>
+            </tr>
+            <tr>
+              <th>시리얼 넘버</th>
+              <td id="serial_number"></td>
+            </tr>
+            <tr>
+              <th>관리 넘버</th>
+              <td id="management_number"></td>
+            </tr>
+            <tr>
+              <th>MAC 주소</th>
+              <td id="mac_address"></td>
+            </tr>
+            <tr>
+              <th>IP 주소</th>
+              <td id="ip_address"></td>
+            </tr>
+            <tr>
+              <th>소유자</th>
+              <td id="owner"></td>
+            </tr>
+            <tr>
+              <th>도입일</th>
+              <td id="acquisition_date"></td>
+            </tr>
+            <tr>
+              <th>보관 장소</th>
+              <td>
+                <span id="location"></span>
+                <a
+                  id="viewLocationBtn"
+                  href="#"
+                  class="btn btn-sm btn-info ms-2"
+                >
+                  <i class="fas fa-map-marker-alt"></i> 위치 보기
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5><i class="fas fa-file-alt"></i> 설명</h5>
+      </div>
+      <div class="card-body">
+        <p id="description" class="mb-0"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">
+    <h5><i class="fas fa-history"></i> 이력</h5>
+  </div>
+  <div class="card-body">
+    <ul class="list-group">
+      <li
+        class="list-group-item d-flex justify-content-between align-items-center"
+      >
+        <div><strong>생성일:</strong> <span id="created_at"></span></div>
+      </li>
+      <li
+        class="list-group-item d-flex justify-content-between align-items-center"
+      >
+        <div><strong>최종 수정일:</strong> <span id="updated_at"></span></div>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- 변경 이력 섹션 -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h5><i class="fas fa-exchange-alt"></i> 변경 이력</h5>
+  </div>
+  <div class="card-body">
+    <div id="historyList" class="accordion">
+      <!-- 변경 이력이 여기에 동적으로 로드됩니다 -->
+    </div>
+    <div id="noHistory" class="text-center p-3 d-none">
+      <p>변경 이력이 없습니다.</p>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  let asset = {};
+  let assetId = {{ asset_id }};
+
+  $(document).ready(function() {
+      // 자산 정보 로드
+      loadAsset();
+
+      // 삭제 버튼 클릭 이벤트
+      $('#deleteBtn').click(function() {
+          if (confirm('정말로 이 자산을 삭제하시겠습니까?')) {
+              deleteAsset();
+          }
+      });
+  });
+
+  // 자산 정보 로드 함수
+  function loadAsset() {
+      $.ajax({
+          url: `/api/assets/${assetId}`,
+          type: 'GET',
+          success: function(data) {
+              asset = data;
+              displayAssetInfo();
+          },
+          error: function(error) {
+              console.error('Error loading asset:', error);
+              alert('자산 정보를 불러오는데 실패했습니다.');
+          }
+      });
+  }
+
+  // 자산 정보 표시 함수
+  function displayAssetInfo() {
+      $('#assetName').text(asset.name);
+      $('#name').text(asset.name);
+      $('#category').text(asset.category);
+      $('#serial_number').text(asset.serial_number);
+      $('#management_number').text(asset.management_number);
+      $('#mac_address').text(asset.mac_address || '-');
+      $('#ip_address').text(asset.ip_address || '-');
+      $('#owner').text(asset.owner || '-');
+      $('#acquisition_date').text(formatDate(asset.acquisition_date));
+      $('#location').text(asset.location);
+      $('#description').text(asset.description || '설명 없음');
+      $('#created_at').text(formatDateTime(asset.created_at));
+      $('#updated_at').text(formatDateTime(asset.updated_at));
+
+      // 위치 보기 버튼 링크 설정
+      getLocationId(asset.location).then(locationId => {
+          $('#viewLocationBtn').attr('href', `/locations/${locationId}`);
+      }).catch(error => {
+          console.error('Error getting location ID:', error);
+          $('#viewLocationBtn').hide();
+      });
+
+      // 변경 이력 표시
+      displayAssetHistory();
+  }
+
+  // 변경 이력 표시 함수
+  function displayAssetHistory() {
+      const historyList = $('#historyList');
+      historyList.empty();
+
+      // 이력이 없는 경우
+      if (!asset.histories || asset.histories.length === 0) {
+          $('#noHistory').removeClass('d-none');
+          return;
+      }
+
+      $('#noHistory').addClass('d-none');
+
+      // 이력 항목 추가
+      asset.histories.forEach((history, index) => {
+          const historyDate = formatDateTime(history.created_at);
+          const changedFields = JSON.stringify(history.changed_fields);
+
+          // 변경 내용 요약
+          let changesSummary = '';
+          for (const [field, values] of Object.entries(history.changed_fields)) {
+              let fieldLabel = getFieldLabel(field);
+              let oldValue = formatValue(field, values.old);
+              let newValue = formatValue(field, values.new);
+
+              changesSummary += `<div class="mb-2">
+                  <strong>${fieldLabel}:</strong>
+                  <span class="text-danger">${oldValue}</span> →
+                  <span class="text-success">${newValue}</span>
+              </div>`;
+          }
+
+          historyList.append(`
+              <div class="accordion-item">
+                  <h2 class="accordion-header" id="heading${index}">
+                      <button class="accordion-button collapsed" type="button"
+                              data-bs-toggle="collapse" data-bs-target="#collapse${index}"
+                              aria-expanded="false" aria-controls="collapse${index}">
+                          <span class="me-auto">${historyDate}</span>
+                          <span class="badge bg-info ms-2">${Object.keys(history.changed_fields).length}개 항목 변경</span>
+                      </button>
+                  </h2>
+                  <div id="collapse${index}" class="accordion-collapse collapse"
+                       aria-labelledby="heading${index}" data-bs-parent="#historyList">
+                      <div class="accordion-body">
+                          ${changesSummary}
+                      </div>
+                  </div>
+              </div>
+          `);
+      });
+  }
+
+  // 필드 이름을 한글 라벨로 변환
+  function getFieldLabel(fieldName) {
+      const fieldLabels = {
+          name: '자산명',
+          category: '카테고리',
+          serial_number: '시리얼 넘버',
+          management_number: '관리 넘버',
+          acquisition_date: '도입일',
+          description: '설명',
+          location: '보관 장소',
+          x_coordinate: 'X 좌표',
+          y_coordinate: 'Y 좌표',
+          mac_address: 'MAC 주소',
+          ip_address: 'IP 주소',
+          owner: '소유자',
+          network_type: '네트워크망',
+          is_in_use: '사용여부'
+      };
+
+      return fieldLabels[fieldName] || fieldName;
+  }
+
+  // 필드 값 포맷팅
+  function formatValue(field, value) {
+      if (value === null || value === undefined) return '-';
+
+      // 날짜 필드 포맷팅
+      if (field === 'acquisition_date') {
+          return value ? formatDate(value) : '-';
+      }
+
+      // 사용여부 필드 포맷팅
+      if (field === 'is_in_use') {
+          if (value === true) return '사용중';
+          if (value === false) return '미사용';
+          return '모름';
+      }
+
+      return value;
+  }
+
+  // 날짜 형식 변환 함수
+  function formatDate(dateString) {
+      if (!dateString) return '-';
+
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          timeZone: 'Asia/Seoul'
+      });
+  }
+
+  // 시간까지 포함한 날짜 포맷팅
+  function formatDateTime(dateString) {
+      if (!dateString) return '-';
+
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Asia/Seoul'
+      });
+  }
+
+  // 위치 ID 가져오기 함수
+  function getLocationId(locationName) {
+      return new Promise((resolve, reject) => {
+          $.ajax({
+              url: '/api/locations/',
+              type: 'GET',
+              success: function(locations) {
+                  const location = locations.find(loc => loc.name === locationName);
+                  if (location) {
+                      resolve(location.id);
+                  } else {
+                      reject(new Error('Location not found'));
+                  }
+              },
+              error: function(error) {
+                  reject(error);
+              }
+          });
+      });
+  }
+
+  // 자산 삭제 함수
+  function deleteAsset() {
+      $.ajax({
+          url: `/api/assets/${assetId}`,
+          type: 'DELETE',
+          success: function() {
+              window.location.href = '/assets';
+          },
+          error: function(error) {
+              console.error('Error deleting asset:', error);
+              alert('자산 삭제에 실패했습니다.');
+          }
+      });
+  }
+</script>
+{% endblock %}

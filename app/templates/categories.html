@@ -1,0 +1,386 @@
+{% extends "base.html" %} {% block title %}카테고리 관리{% endblock %} {% block
+extra_css %}
+<style>
+  .category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 4px solid #0d6efd;
+  }
+
+  .category-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .empty-message {
+    padding: 20px;
+    text-align: center;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="row mb-4">
+  <div class="col-md-6">
+    <h1><i class="fas fa-tags"></i> 카테고리 관리</h1>
+  </div>
+  <div class="col-md-6 text-end">
+    <button
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#addCategoryModal"
+    >
+      <i class="fas fa-plus-circle"></i> 카테고리 추가
+    </button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0">카테고리 목록</h5>
+  </div>
+  <div class="card-body">
+    <div id="categoriesList">
+      <!-- 카테고리 목록이 여기에 동적으로 로드됩니다 -->
+    </div>
+  </div>
+</div>
+
+<!-- 카테고리 추가 모달 -->
+<div
+  class="modal fade"
+  id="addCategoryModal"
+  tabindex="-1"
+  aria-labelledby="addCategoryModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addCategoryModalLabel">카테고리 추가</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="addCategoryForm">
+          <div class="mb-3">
+            <label for="categoryName" class="form-label">카테고리 이름</label>
+            <input
+              type="text"
+              class="form-control"
+              id="categoryName"
+              required
+            />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          취소
+        </button>
+        <button type="button" class="btn btn-primary" id="saveCategory">
+          저장
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 카테고리 수정 모달 -->
+<div
+  class="modal fade"
+  id="editCategoryModal"
+  tabindex="-1"
+  aria-labelledby="editCategoryModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editCategoryModalLabel">카테고리 수정</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="editCategoryForm">
+          <input type="hidden" id="editCategoryId" />
+          <div class="mb-3">
+            <label for="editCategoryName" class="form-label"
+              >카테고리 이름</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="editCategoryName"
+              required
+            />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          취소
+        </button>
+        <button type="button" class="btn btn-primary" id="updateCategory">
+          수정
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 카테고리 삭제 확인 모달 -->
+<div
+  class="modal fade"
+  id="deleteCategoryModal"
+  tabindex="-1"
+  aria-labelledby="deleteCategoryModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteCategoryModalLabel">
+          카테고리 삭제 확인
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="deleteCategoryId" />
+        <p>
+          정말로 "<span id="deleteCategoryName"></span>" 카테고리를
+          삭제하시겠습니까?
+        </p>
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i> 주의: 이 카테고리를 사용
+          중인 자산이 있는 경우 삭제할 수 없습니다.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          취소
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteCategory">
+          삭제
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  $(document).ready(function () {
+    // 카테고리 목록 로드
+    loadCategories();
+
+    // 카테고리 추가 버튼 클릭 이벤트
+    $("#saveCategory").click(function () {
+      const categoryName = $("#categoryName").val().trim();
+      if (categoryName) {
+        addCategory(categoryName);
+      } else {
+        alert("카테고리 이름을 입력해주세요.");
+      }
+    });
+
+    // 카테고리 수정 버튼 클릭 이벤트
+    $("#updateCategory").click(function () {
+      const categoryId = $("#editCategoryId").val();
+      const categoryName = $("#editCategoryName").val().trim();
+      if (categoryName) {
+        updateCategory(categoryId, categoryName);
+      } else {
+        alert("카테고리 이름을 입력해주세요.");
+      }
+    });
+
+    // 카테고리 삭제 확인 버튼 클릭 이벤트
+    $("#confirmDeleteCategory").click(function () {
+      const categoryId = $("#deleteCategoryId").val();
+      deleteCategory(categoryId);
+    });
+  });
+
+  // 카테고리 목록 로드 함수
+  function loadCategories() {
+    console.log("카테고리 목록 로드 시작");
+    $.ajax({
+      url: "/api/categories/",
+      type: "GET",
+      success: function (data) {
+        console.log("카테고리 목록 로드 성공:", data);
+        renderCategories(data);
+      },
+      error: function (error) {
+        console.error("Error loading categories:", error);
+        alert("카테고리 목록을 불러오는데 실패했습니다.");
+      },
+    });
+  }
+
+  // 카테고리 목록 렌더링 함수
+  function renderCategories(categories) {
+    console.log("카테고리 렌더링 시작, 항목 수:", categories.length);
+    const categoriesList = $("#categoriesList");
+    categoriesList.empty();
+
+    if (categories.length === 0) {
+      console.log("카테고리가 없습니다.");
+      categoriesList.html(
+        '<div class="empty-message">등록된 카테고리가 없습니다.</div>'
+      );
+      return;
+    }
+
+    categories.forEach((category) => {
+      console.log("카테고리 렌더링:", category);
+      categoriesList.append(`
+        <div class="category-item">
+          <div class="category-name">${category.name}</div>
+          <div class="category-actions">
+            <button class="btn btn-sm btn-outline-primary edit-category" data-id="${category.id}" data-name="${category.name}">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger delete-category" data-id="${category.id}" data-name="${category.name}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `);
+    });
+
+    // 수정 버튼 클릭 이벤트
+    $(".edit-category").click(function () {
+      const categoryId = $(this).data("id");
+      const categoryName = $(this).data("name");
+      $("#editCategoryId").val(categoryId);
+      $("#editCategoryName").val(categoryName);
+      $("#editCategoryModal").modal("show");
+    });
+
+    // 삭제 버튼 클릭 이벤트
+    $(".delete-category").click(function () {
+      const categoryId = $(this).data("id");
+      const categoryName = $(this).data("name");
+      $("#deleteCategoryId").val(categoryId);
+      $("#deleteCategoryName").text(categoryName);
+      $("#deleteCategoryModal").modal("show");
+    });
+  }
+
+  // 카테고리 추가 함수
+  function addCategory(name) {
+    console.log("카테고리 추가 시작:", name);
+    $.ajax({
+      url: "/api/categories/",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ name: name }),
+      success: function (response) {
+        console.log("카테고리 추가 성공:", response);
+        $("#addCategoryModal").modal("hide");
+        $("#categoryName").val("");
+        loadCategories();
+        showAlert("success", "카테고리가 성공적으로 추가되었습니다.");
+      },
+      error: function (error) {
+        console.error("Error adding category:", error);
+        let errorMessage = "카테고리 추가에 실패했습니다.";
+        if (error.responseJSON && error.responseJSON.detail) {
+          errorMessage = error.responseJSON.detail;
+        }
+        alert(errorMessage);
+      },
+    });
+  }
+
+  // 카테고리 수정 함수
+  function updateCategory(id, name) {
+    $.ajax({
+      url: `/api/categories/${id}`,
+      type: "PUT",
+      contentType: "application/json",
+      data: JSON.stringify({ name: name }),
+      success: function (response) {
+        $("#editCategoryModal").modal("hide");
+        loadCategories();
+        showAlert("success", "카테고리가 성공적으로 수정되었습니다.");
+      },
+      error: function (error) {
+        console.error("Error updating category:", error);
+        let errorMessage = "카테고리 수정에 실패했습니다.";
+        if (error.responseJSON && error.responseJSON.detail) {
+          errorMessage = error.responseJSON.detail;
+        }
+        alert(errorMessage);
+      },
+    });
+  }
+
+  // 카테고리 삭제 함수
+  function deleteCategory(id) {
+    $.ajax({
+      url: `/api/categories/${id}`,
+      type: "DELETE",
+      success: function (response) {
+        $("#deleteCategoryModal").modal("hide");
+        loadCategories();
+        showAlert("success", "카테고리가 성공적으로 삭제되었습니다.");
+      },
+      error: function (error) {
+        console.error("Error deleting category:", error);
+        let errorMessage = "카테고리 삭제에 실패했습니다.";
+        if (error.responseJSON && error.responseJSON.detail) {
+          errorMessage = error.responseJSON.detail;
+        }
+        $("#deleteCategoryModal").modal("hide");
+        alert(errorMessage);
+      },
+    });
+  }
+
+  // 알림 표시 함수
+  function showAlert(type, message) {
+    const alertClass = type === "success" ? "alert-success" : "alert-danger";
+    const alertIcon =
+      type === "success" ? "check-circle" : "exclamation-circle";
+
+    const alertHtml = `
+      <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+        <i class="fas fa-${alertIcon} me-2"></i> ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `;
+
+    // 기존 알림 제거
+    $(".alert").alert("close");
+
+    // 새 알림 추가
+    $(".card-header").after(alertHtml);
+
+    // 자동 닫힘 설정
+    setTimeout(() => {
+      $(".alert").alert("close");
+    }, 3000);
+  }
+</script>
+{% endblock %}
