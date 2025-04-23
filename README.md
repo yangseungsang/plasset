@@ -29,3 +29,17 @@ docker run -d --name asset-app -p 8000:8000 -v $(pwd)/data:/app/data asset-manag
 ```
 http://localhost:8000
 ```
+
+## 이미지 및 데모
+
+프로젝트의 작동 방식을 보여주는 이미지와 데모 동영상을 아래에 포함시켰습니다.
+
+![데모 이미지](./images/demo.png)
+
+[데모 동영상 보기](https://example.com/demo)
+
+## 추가 정보
+
+이 프로젝트는 FastAPI와 SQLAlchemy를 사용하여 구축되었습니다. 자세한 사용법과 API 문서는 [여기](./docs/api.md)에서 확인할 수 있습니다.
+
+프로젝트에 기여하고 싶으신 분들은 [CONTRIBUTING.md](./CONTRIBUTING.md)를 참조해주세요.

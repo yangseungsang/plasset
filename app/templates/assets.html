@@ -1,11 +1,8 @@
 {% extends "base.html" %} {% block title %}{{ title }}{% endblock %} {% block
 head_extra %}
-<link
-  rel="stylesheet"
-  href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"
-/>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/static/vendor/css/jquery-ui.css" />
+<script src="/static/vendor/js/jquery-3.6.0.min.js"></script>
+<script src="/static/vendor/js/jquery-ui.min.js"></script>
 {% endblock %} {% block content %}
 <div class="row mb-4">
   <div class="col-md-6">
@@ -35,7 +32,7 @@ head_extra %}
   <hr />
   <div class="column-order-controls">
     <h6>열 순서 변경</h6>
-    <p class="small text-muted">드래그하여 순서를 변경하세요</p>
+    <p class="small text-muted">버튼을 이용하여 순서를 변경하세요</p>
     <ul id="columnOrderList" class="list-group column-order-list">
       <!-- 여기에 동적으로 열 순서 옵션 추가 -->
     </ul>
@@ -683,26 +680,43 @@ head_extra %}
     align-items: center;
     justify-content: center;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    cursor: move;
+    transition: box-shadow 0.3s ease;
+  }
+
+  #toggleColumnPanelBtn:hover {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+  }
+
+  #toggleColumnPanelBtn.dragging {
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
+    opacity: 0.8;
   }
 
   /* 열 순서 변경 리스트 스타일 */
   .column-order-list {
-    padding-left: 0;
+    max-height: 300px;
+    overflow-y: auto;
   }
 
   .column-order-item {
-    display: flex;
-    align-items: center;
     padding: 8px 12px;
     margin-bottom: 5px;
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
     border-radius: 4px;
-    cursor: move;
+    cursor: pointer;
+    transition: background-color 0.3s;
   }
 
   .column-order-item:hover {
     background-color: #e9ecef;
+  }
+
+  .column-order-item.focus-highlight {
+    background-color: #daeeff;
+    border-color: #3c91e6;
+    box-shadow: 0 0 0 0.2rem rgba(60, 145, 230, 0.25);
   }
 
   .column-order-item i {
@@ -761,6 +775,9 @@ head_extra %}
     loadLocations();
     loadOwners();
     loadNetworkTypes();
+
+    // 플로팅 버튼 이동 가능하게 설정
+    makeDraggable($("#toggleColumnPanelBtn"));
 
     // 검색 버튼 클릭 이벤트
     $("#searchBtn").click(function () {
@@ -877,11 +894,6 @@ head_extra %}
       const filterType = $(this).data("filter-type");
       const filterValue = $(this).data("filter-value");
       removeFilter(filterType, filterValue);
-    });
-
-    // 열 설정 패널 토글
-    $("#toggleColumnPanelBtn").click(function () {
-      $("#columnControlPanel").toggleClass("open");
     });
 
     // 열 숨기기/표시 설정 초기화
@@ -1623,73 +1635,6 @@ head_extra %}
     });
   }
 
-  // 열 숨기기/표시 컨트롤 초기화 함수
-  function initColumnControls() {
-    const columns = [
-      { id: "name", name: "자산명" },
-      { id: "category", name: "카테고리" },
-      { id: "serial_number", name: "시리얼 넘버" },
-      { id: "management_number", name: "관리 넘버" },
-      { id: "ip_address", name: "IP 주소" },
-      { id: "owner", name: "소유자" },
-      { id: "location", name: "보관 장소" },
-      { id: "network_type", name: "네트워크망" },
-      { id: "is_in_use", name: "사용여부" },
-      { id: "actions", name: "작업" },
-    ];
-
-    // 저장된 열 설정 가져오기
-    let hiddenColumns = JSON.parse(localStorage.getItem("hiddenColumns")) || [];
-
-    // 열 토글 옵션 생성
-    let toggleOptions = "";
-    columns.forEach((column) => {
-      const isChecked = !hiddenColumns.includes(column.id);
-      toggleOptions += `
-        <div class="column-toggle form-check">
-          <input class="form-check-input" type="checkbox" id="toggle-${
-            column.id
-          }" 
-                 data-column="${column.id}" ${isChecked ? "checked" : ""}>
-          <label class="form-check-label" for="toggle-${column.id}">${
-        column.name
-      }</label>
-        </div>
-      `;
-    });
-
-    $("#columnToggleOptions").html(toggleOptions);
-
-    // 저장된 설정 적용
-    applyColumnVisibility(hiddenColumns);
-
-    // 열 토글 이벤트 처리
-    $(".column-toggle input").change(function () {
-      const columnId = $(this).data("column");
-      const isVisible = $(this).prop("checked");
-
-      // 열 표시/숨김 처리
-      if (isVisible) {
-        $(
-          `th[data-column="${columnId}"], td[data-column="${columnId}"]`
-        ).removeClass("hidden-column");
-        // 숨김 목록에서 제거
-        hiddenColumns = hiddenColumns.filter((id) => id !== columnId);
-      } else {
-        $(
-          `th[data-column="${columnId}"], td[data-column="${columnId}"]`
-        ).addClass("hidden-column");
-        // 숨김 목록에 추가
-        if (!hiddenColumns.includes(columnId)) {
-          hiddenColumns.push(columnId);
-        }
-      }
-
-      // 설정 저장
-      localStorage.setItem("hiddenColumns", JSON.stringify(hiddenColumns));
-    });
-  }
-
   // 열 순서 초기화 및 적용 함수
   function initColumnOrder() {
     const defaultColumnOrder = [
@@ -1714,17 +1659,6 @@ head_extra %}
 
     // 테이블에 열 순서 적용
     applyColumnOrder();
-
-    // 열 순서 변경 이벤트 설정 (jQuery UI Sortable)
-    $("#columnOrderList").sortable({
-      placeholder: "column-order-item ui-sortable-placeholder",
-      update: function (event, ui) {
-        // 변경된 순서 저장
-        saveColumnOrder();
-        // 테이블에 변경된 순서 적용
-        applyColumnOrder();
-      },
-    });
   }
 
   // 열 순서 목록 렌더링 함수
@@ -1744,28 +1678,131 @@ head_extra %}
 
     let listItems = "";
 
-    // 현재 순서대로 항목 생성
-    columnOrder.forEach((columnId) => {
+    // 현재 순서대로 항목 생성 (위/아래 버튼 추가)
+    columnOrder.forEach((columnId, index) => {
       listItems += `
-        <li class="column-order-item" data-column-id="${columnId}">
-          <i class="fas fa-grip-vertical"></i>
-          ${columnNames[columnId]}
+        <li class="column-order-item d-flex align-items-center justify-content-between" data-column-id="${columnId}" id="column-item-${index}">
+          <span>${columnNames[columnId]}</span>
+          <div class="btn-group btn-group-sm">
+            ${
+              index > 0
+                ? `<button type="button" class="btn btn-outline-secondary move-up" data-index="${index}">
+                <i class="fas fa-arrow-up"></i>
+              </button>`
+                : `<button type="button" class="btn btn-outline-secondary" disabled>
+                <i class="fas fa-arrow-up"></i>
+              </button>`
+            }
+            ${
+              index < columnOrder.length - 1
+                ? `<button type="button" class="btn btn-outline-secondary move-down" data-index="${index}">
+                <i class="fas fa-arrow-down"></i>
+              </button>`
+                : `<button type="button" class="btn btn-outline-secondary" disabled>
+                <i class="fas fa-arrow-down"></i>
+              </button>`
+            }
+          </div>
         </li>
       `;
     });
 
     $("#columnOrderList").html(listItems);
+
+    // 위로 이동 버튼 클릭 이벤트
+    $(".move-up").on("click", function (e) {
+      // 클릭한 버튼의 위치 정보와 부모 요소 저장
+      const $button = $(this);
+      const index = $button.data("index");
+      const $currentItem = $button.closest(".column-order-item");
+      const $parentList = $currentItem.parent();
+      const currentItemHeight = $currentItem.outerHeight();
+      const currentScrollTop = $parentList.scrollTop();
+
+      if (index > 0) {
+        // 항목 위치 교환
+        [columnOrder[index], columnOrder[index - 1]] = [
+          columnOrder[index - 1],
+          columnOrder[index],
+        ];
+
+        // 변경 사항 저장 및 적용
+        saveColumnOrder();
+
+        // 목록 다시 렌더링
+        renderColumnOrderList();
+        applyColumnOrder();
+
+        // 스크롤 위치 조정 (항목 높이만큼 위로 이동)
+        $parentList.scrollTop(currentScrollTop - currentItemHeight);
+
+        // 이동 후 같은 항목에 포커스 (이제 인덱스가 하나 줄었음)
+        focusColumnItem(index - 1);
+      }
+
+      // 이벤트 기본 동작 방지
+      e.preventDefault();
+    });
+
+    // 아래로 이동 버튼 클릭 이벤트
+    $(".move-down").on("click", function (e) {
+      // 클릭한 버튼의 위치 정보와 부모 요소 저장
+      const $button = $(this);
+      const index = $button.data("index");
+      const $currentItem = $button.closest(".column-order-item");
+      const $parentList = $currentItem.parent();
+      const currentItemHeight = $currentItem.outerHeight();
+      const currentScrollTop = $parentList.scrollTop();
+
+      if (index < columnOrder.length - 1) {
+        // 항목 위치 교환
+        [columnOrder[index], columnOrder[index + 1]] = [
+          columnOrder[index + 1],
+          columnOrder[index],
+        ];
+
+        // 변경 사항 저장 및 적용
+        saveColumnOrder();
+
+        // 목록 다시 렌더링
+        renderColumnOrderList();
+        applyColumnOrder();
+
+        // 스크롤 위치 조정 (항목 높이만큼 아래로 이동)
+        $parentList.scrollTop(currentScrollTop + currentItemHeight);
+
+        // 이동 후 같은 항목에 포커스 (이제 인덱스가 하나 늘었음)
+        focusColumnItem(index + 1);
+      }
+
+      // 이벤트 기본 동작 방지
+      e.preventDefault();
+    });
+  }
+
+  // 특정 열 항목에 포커스하는 함수
+  function focusColumnItem(index) {
+    // 해당 인덱스의 항목 찾기
+    const item = $(`#column-item-${index}`);
+    if (item.length) {
+      // 항목에 시각적으로 포커스된 것처럼 스타일 적용
+      item.addClass("focus-highlight");
+
+      // 잠시 후 포커스 스타일 제거
+      setTimeout(() => {
+        item.removeClass("focus-highlight");
+      }, 1000);
+
+      // 해당 요소 내부의 버튼에 포커스
+      const buttons = item.find("button:not([disabled])");
+      if (buttons.length) {
+        buttons.first().focus();
+      }
+    }
   }
 
   // 변경된 열 순서 저장 함수
   function saveColumnOrder() {
-    // 현재 목록에서 열 ID 순서 추출
-    columnOrder = $("#columnOrderList li")
-      .map(function () {
-        return $(this).data("column-id");
-      })
-      .get();
-
     // 로컬 스토리지에 저장
     localStorage.setItem("columnOrder", JSON.stringify(columnOrder));
   }
@@ -1857,6 +1894,103 @@ head_extra %}
 
     // 테이블에 적용
     applyColumnOrder();
+  }
+
+  /**
+   * 요소를 드래그 가능하게 만드는 함수
+   * @param {jQuery} $element - 드래그할 jQuery 요소
+   */
+  function makeDraggable($element) {
+    let isDragging = false;
+    let offsetX, offsetY;
+    let startX, startY;
+
+    // 위치 저장 불러오기
+    const savedPosition = localStorage.getItem("floatingButtonPosition");
+    if (savedPosition) {
+      try {
+        const position = JSON.parse(savedPosition);
+        $element.css({
+          top: position.top + "px",
+          right: "auto",
+          left: position.left + "px",
+        });
+      } catch (e) {
+        console.error("저장된 위치 불러오기 실패:", e);
+      }
+    }
+
+    // 마우스 다운 이벤트 - 드래그 시작
+    $element.on("mousedown", function (e) {
+      e.preventDefault();
+
+      isDragging = true;
+
+      // 요소 위치와 마우스 위치의 차이 계산
+      const elementOffset = $element.offset();
+      offsetX = e.clientX - elementOffset.left;
+      offsetY = e.clientY - elementOffset.top;
+
+      // 시작 위치 저장
+      startX = e.clientX;
+      startY = e.clientY;
+
+      // 드래그 중 스타일 적용
+      $element.addClass("dragging");
+    });
+
+    // 마우스 무브 이벤트 - 드래그 중
+    $(document).on("mousemove", function (e) {
+      if (!isDragging) return;
+
+      // 새 위치 계산
+      const left = e.clientX - offsetX;
+      const top = e.clientY - offsetY;
+
+      // 화면 밖으로 나가지 않도록 제한
+      const maxX = window.innerWidth - $element.outerWidth();
+      const maxY = window.innerHeight - $element.outerHeight();
+
+      const newLeft = Math.min(Math.max(0, left), maxX);
+      const newTop = Math.min(Math.max(0, top), maxY);
+
+      // 위치 적용
+      $element.css({
+        left: newLeft + "px",
+        top: newTop + "px",
+        right: "auto", // right 속성 제거
+      });
+    });
+
+    // 마우스 업 이벤트 - 드래그 종료
+    $(document).on("mouseup", function (e) {
+      if (!isDragging) return;
+
+      isDragging = false;
+
+      // 드래그 중 스타일 제거
+      $element.removeClass("dragging");
+
+      // 현재 위치 저장
+      const position = {
+        left: parseInt($element.css("left")),
+        top: parseInt($element.css("top")),
+      };
+
+      localStorage.setItem("floatingButtonPosition", JSON.stringify(position));
+
+      // 클릭으로 인식할 최소 이동 거리 (5px 이내면 클릭으로 간주)
+      const movedDistance = Math.sqrt(
+        Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2)
+      );
+
+      // 이동 거리가 작으면 클릭 이벤트 수동 트리거
+      if (movedDistance < 5) {
+        if ($element.attr("id") === "toggleColumnPanelBtn") {
+          $("#columnControlPanel").toggleClass("open");
+        }
+      }
+    });
   }
 </script>
 {% endblock %}

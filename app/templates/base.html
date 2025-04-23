@@ -18,15 +18,15 @@
     <link rel="stylesheet" href="/static/css/fonts.css" />
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/static/external/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/vendor/css/bootstrap.min.css" />
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="/static/external/all.min.css" />
+    <link rel="stylesheet" href="/static/vendor/css/fontawesome.min.css" />
 
     <!-- Custom CSS -->
     <link href="/static/css/styles.css" rel="stylesheet" />
 
-    {% block extra_css %}{% endblock %}
+    {% block head_extra %}{% endblock %} {% block extra_css %}{% endblock %}
   </head>
   <body>
     <div class="app-container">
@@ -142,9 +142,9 @@
     </div>
 
     <!-- jQuery -->
-    <script src="/static/external/jquery-3.6.0.min.js"></script>
+    <script src="/static/vendor/js/jquery-3.6.0.min.js"></script>
     <!-- Bootstrap JS Bundle with Popper -->
-    <script src="/static/external/bootstrap.bundle.min.js"></script>
+    <script src="/static/vendor/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="/static/js/main.js"></script>
     {% block extra_js %}{% endblock %}
